@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <header class="admin-header">
+        <h1>Admin Dashboard</h1>
+        <button id="logoutBtn" class="logout-btn">Đăng xuất</button>
+    </header>
+
+    <div class="admin-container">
+        <aside class="sidebar">
+            <ul id="adminMenu">
+                <li><a href="#" data-target="dashboardView" class="active">Trang chủ</a></li>
+                <li><a href="#" data-target="usersView">Quản lý Người dùng</a></li>
+                <li><a href="#" data-target="ordersView">Quản lý Đơn hàng</a></li>
+                <li><a href="#" data-target="productsView">Quản lý Sản phẩm</a></li>
+                <li><a href="#" data-target="shippersView">Quản lý Shipper</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div id="loading" class="loader">Đang tải dữ liệu...</div>
+            <div id="error" class="error-msg" style="display: none;"></div>
+            
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view-section" style="display: none;">
+                <h2 id="msg"></h2>
+                <div class="dashboard-cards">
+                    <div class="card">
+                        <h3>Tổng Người Dùng</h3>
+                        <p id="totalUsers">0</p>
+                    </div>
+                    <div class="card">
+                        <h3>Tổng Đơn Hàng</h3>
+                        <p id="totalOrders">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users View -->
+            <div id="usersView" class="view-section" style="display: none;">
+                <h2>Quản lý Người dùng</h2>
+                <button onclick="openAddUserModal()" class="btn-primary" style="margin-bottom: 15px; cursor: pointer; padding: 8px 12px; border-radius: 4px; border: none;">+ Thêm Người Dùng</button>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Họ tên</th>
+                            <th>SĐT</th>
+                            <th>Vai trò</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Orders View -->
+            <div id="ordersView" class="view-section" style="display: none;">
+                <h2>Quản lý Đơn hàng</h2>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã ĐH</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Shipper</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Products View -->
+            <div id="productsView" class="view-section" style="display: none;">
+                <h2>Quản lý Sản phẩm</h2>
+                <button onclick="openAddProductModal()" class="btn-primary" style="margin-bottom: 15px; cursor: pointer; padding: 8px 12px; border-radius: 4px; border: none;">+ Thêm Sản phẩm mới</button>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên SP</th>
+                            <th>Giá</th>
+                            <th>Mã danh mục</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody"></tbody>
+                </table>
+            </div>
+
+            <!-- Shippers View -->
+            <div id="shippersView" class="view-section" style="display: none;">
+                <h2>Quản lý Shipper</h2>
+                <button onclick="openAddShipperModal()" class="btn-primary" style="margin-bottom: 15px; cursor: pointer; padding: 8px 12px; border-radius: 4px; border: none;">+ Thêm Shipper mới</button>
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Mã NV</th>
+                            <th>Họ Tên</th>
+                            <th>SĐT</th>
+                            <th>Địa chỉ</th>
+                            <th>Phương tiện</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shippersTableBody"></tbody>
+                </table>
+            </div>
+            
+        </main>
+
+        <div id="assignShipperModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeShipperModal()">&times;</span>
+                <h3>Phân công Shipper cho Đơn Hàng <span id="modalOrderId"></span></h3>
+                <div class="form-group">
+                    <label>Chọn Shipper:</label>
+                    <select id="modalShipperSelect" class="form-control"></select>
+                </div>
+                <button onclick="submitAssignShipper()" class="btn-primary">Xác nhận</button>
+            </div>
+        </div>
+
+        <!-- Order Detail Modal -->
+        <div id="orderDetailModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeOrderDetailModal()">&times;</span>
+                <h3>Chi tiết đơn hàng #<span id="detailOrderId"></span></h3>
+                <div id="orderDetailContent" style="margin: 15px 0; line-height: 1.6;">
+                    <!-- Nội dung chi tiết đơn hàng sẽ được render ở đây -->
+                </div>
+                <hr>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Cập nhật trạng thái đơn hàng:</label>
+                    <select id="modalStatusSelect" class="form-control">
+                        <!-- Các trạng thái sẽ được load bằng JS -->
+                    </select>
+                    <button onclick="submitUpdateStatus()" class="btn-primary" style="margin-top: 10px;">Cập nhật trạng thái</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Shipper Form Modal (Thêm/Sửa) -->
+        <div id="shipperModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeShipperFormModal()">&times;</span>
+                <h3 id="modalShipperTitle">Thêm/Sửa Shipper</h3>
+                <div class="form-group" style="margin-top: 15px;">
+                    <div id="empCodeGroup">
+                        <label>Mã Nhân Viên (Tự động sinh):</label>
+                        <input type="text" id="shipperEmpCode" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #f1f1f1;" readonly placeholder="Mã tự động sinh khi thêm mới">
+                    </div>
+
+                    <label>Họ Tên:</label>
+                    <input type="text" id="shipperName" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Số Điện Thoại:</label>
+                    <input type="text" id="shipperPhone" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Địa Chỉ:</label>
+                    <input type="text" id="shipperAddress" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Phương Tiện:</label>
+                    <input type="text" id="shipperVehicle" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <button onclick="saveShipper()" class="btn-primary" style="margin-top: 10px; padding: 10px; width: 100%;">Lưu Shipper</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Form Modal (Thêm/Sửa Sản phẩm) -->
+        <div id="productModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeProductFormModal()">&times;</span>
+                <h3 id="modalProductTitle">Thêm/Sửa Sản Phẩm</h3>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Tên Sản Phẩm:</label>
+                    <input type="text" id="productName" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Giá:</label>
+                    <input type="number" id="productPrice" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>URL Hình Ảnh:</label>
+                    <input type="text" id="productImage" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Danh Mục:</label>
+                    <select id="productCategory" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="1">Nước uống (1)</option>
+                        <option value="2">Rau củ / Trái cây (2)</option>
+                        <option value="3">Thịt và cá (3)</option>
+                        <option value="4">Trứng và sữa (4)</option>
+                        <option value="5">Bánh / Đồ ăn nhanh (5)</option>
+                        <option value="6">Gia vị (6)</option>
+                        <option value="7">Hóa mỹ phẩm & Đồ dùng (7)</option>
+                    </select>
+                    
+                    <button onclick="saveProduct()" class="btn-primary" style="margin-top: 10px; padding: 10px; width: 100%;">Lưu Sản Phẩm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Form Modal (Thêm/Sửa User) -->
+        <div id="userModal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeUserFormModal()">&times;</span>
+                <h3 id="modalUserTitle">Thêm/Sửa Người Dùng</h3>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label>Username:</label>
+                    <input type="text" id="userUsername" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Email:</label>
+                    <input type="email" id="userEmail" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <div id="userPasswordGroup">
+                        <label>Mật khẩu:</label>
+                        <input type="password" id="userPassword" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" placeholder="Để trống nếu không đổi">
+                    </div>
+
+                    <label>Họ đệm:</label>
+                    <input type="text" id="userLastname" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Tên:</label>
+                    <input type="text" id="userFirstname" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Số điện thoại:</label>
+                    <input type="text" id="userPhone" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    
+                    <label>Vai trò:</label>
+                    <select id="userRole" class="form-control" style="width: 100%; margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="ROLE_USER">Người dùng (User)</option>
+                        <option value="ROLE_ADMIN">Quản trị viên (Admin)</option>
+                    </select>
+                    
+                    <button onclick="saveUser()" class="btn-primary" style="margin-top: 10px; padding: 10px; width: 100%;">Lưu Người Dùng</button>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Script config -->
+    <script src="js/config.js"></script>
+    <script src="js/service.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
