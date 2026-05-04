@@ -178,6 +178,25 @@ public class OrderService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Đơn hàng đã giao thành công, không thể cập nhật trạng thái mới!");
         }
 
+        // Xử lý khi giao hàng thành công (Trạng thái ID = 4) -> Tính doanh thu, lợi nhuận, số lượng bán
+        if (statusId.equals(4L) && (oldStatusId == null || !oldStatusId.equals(4L))) {
+            if (order.getOrderItems() != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    Product p = item.getProduct();
+                    if (p != null) {
+                        Long itemPrice = item.getPrice() != null ? item.getPrice() : p.getPrice();
+                        Long importPrice = calculateImportPrice(itemPrice);
+                        Long itemProfit = itemPrice - importPrice;
+
+                        p.setSoldQuantity((p.getSoldQuantity() == null ? 0 : p.getSoldQuantity()) + item.getQuantity());
+                        p.setRevenue((p.getRevenue() == null ? 0L : p.getRevenue()) + (itemPrice * item.getQuantity()));
+                        p.setProfit((p.getProfit() == null ? 0L : p.getProfit()) + (itemProfit * item.getQuantity()));
+                        productRepository.save(p);
+                    }
+                }
+            }
+        }
+
         // Xử lý hoàn trả/trừ lại tồn kho khi thay đổi trạng thái Hủy đơn (Trạng thái ID = 5)
         if (statusId.equals(5L) && (oldStatusId == null || !oldStatusId.equals(5L))) {
             // Chuyển sang trạng thái "Đã hủy" -> Cộng lại tồn kho
@@ -249,4 +268,15 @@ public class OrderService {
         return order;
     }
 
+    private Long calculateImportPrice(Long sellingPrice) {
+        if (sellingPrice == null) return 0L;
+        if (sellingPrice >= 500000) return sellingPrice - 100000;
+        if (sellingPrice >= 300000) return sellingPrice - 70000;
+        if (sellingPrice >= 200000) return sellingPrice - 60000;
+        if (sellingPrice >= 100000) return sellingPrice - 30000;
+        if (sellingPrice >= 50000) return sellingPrice - 20000;
+        if (sellingPrice >= 30000) return sellingPrice - 10000;
+        if (sellingPrice >= 10000) return sellingPrice - 5000;
+        return sellingPrice - 3000;
+    }
 }

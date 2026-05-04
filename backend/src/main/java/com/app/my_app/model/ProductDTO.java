@@ -27,6 +27,12 @@ public class ProductDTO {
 
     private Integer quantity;
 
+    private Integer soldQuantity;
+
+    private Long revenue;
+
+    private Long profit;
+
     @Size(max = 255)
     private String unit;
 

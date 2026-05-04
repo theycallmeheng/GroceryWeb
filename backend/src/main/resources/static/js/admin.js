@@ -180,53 +180,38 @@ function loadView(viewId, token) {
             document.getElementById('productsView').style.display = 'block';
         });
     } else if (viewId === 'revenueView') {
-        fetchAdminData('/api/admin/orders', headers, (orders) => {
-            // Lọc ra các đơn hàng đã Giao thành công (statusId === 4)
-            const successfulOrders = orders.filter(o => {
-                const statusId = o.status ? (o.status.id || o.status) : 1;
-                return parseInt(statusId) === 4;
-            });
-
+        // Lấy trực tiếp dữ liệu từ bảng Sản phẩm (Đã được Server lưu sẵn Doanh thu)
+        fetchAdminData('/api/products', headers, (products) => {
             let totalRevenue = 0;
             let totalProfit = 0;
-            const productSales = {};
 
-            successfulOrders.forEach(order => {
-                const items = order.orderItems || order.orderDetails || order.items || [];
-                items.forEach(item => {
-                    const itemPrice = item.price || (item.product ? item.product.price : 0);
-                    const importPrice = calculateImportPrice(itemPrice);
-                    const profitPerItem = itemPrice - importPrice;
-                    
-                    totalRevenue += itemPrice * item.quantity;
-                    totalProfit += profitPerItem * item.quantity;
+            const tbody = document.getElementById('revenueTableBody');
+            tbody.innerHTML = '';
 
-                    // Nhóm số liệu theo từng sản phẩm
-                    const prodName = item.product ? item.product.name : item.name || 'Sản phẩm';
-                    if (!productSales[prodName]) {
-                        productSales[prodName] = { quantity: 0, revenue: 0, profit: 0 };
-                    }
-                    productSales[prodName].quantity += item.quantity;
-                    productSales[prodName].revenue += itemPrice * item.quantity;
-                    productSales[prodName].profit += profitPerItem * item.quantity;
-                });
+            // Lọc ra những sản phẩm đã từng được bán (soldQuantity > 0)
+            const soldProducts = products.filter(p => p.soldQuantity && p.soldQuantity > 0);
+
+            soldProducts.forEach(p => {
+                const rev = p.revenue || 0;
+                const prof = p.profit || 0;
+                const qty = p.soldQuantity || 0;
+                
+                totalRevenue += rev;
+                totalProfit += prof;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${p.name}</td>
+                        <td>${qty}</td>
+                        <td>${rev.toLocaleString()} VNĐ</td>
+                        <td>${prof.toLocaleString()} VNĐ</td>
+                    </tr>
+                `;
             });
 
             document.getElementById('revTotalRevenue').innerText = totalRevenue.toLocaleString() + ' VNĐ';
             document.getElementById('revTotalProfit').innerText = totalProfit.toLocaleString() + ' VNĐ';
 
-            const tbody = document.getElementById('revenueTableBody');
-            tbody.innerHTML = '';
-            for (const [name, stats] of Object.entries(productSales)) {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${name}</td>
-                        <td>${stats.quantity}</td>
-                        <td>${stats.revenue.toLocaleString()} VNĐ</td>
-                        <td>${stats.profit.toLocaleString()} VNĐ</td>
-                    </tr>
-                `;
-            }
             document.getElementById('revenueView').style.display = 'block';
         });
     } else if (viewId === 'shippersView') {

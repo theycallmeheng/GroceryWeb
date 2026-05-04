@@ -35,6 +35,15 @@ public class Product {
     @Column(nullable = false, columnDefinition = "integer default 0")
     private Integer quantity = 0;
 
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer soldQuantity = 0;
+
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long revenue = 0L;
+
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long profit = 0L;
+
     @Column
     private String unit;
 
