@@ -25,7 +25,7 @@ public class ProductDTO {
     private Long price;
 
 
-    private Long quantity;
+    private Integer quantity;
 
     @Size(max = 255)
     private String unit;

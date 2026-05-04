@@ -5,6 +5,7 @@ import com.app.my_app.model.OrderDTO;
 import com.app.my_app.repos.OrderItemRepository;
 import com.app.my_app.repos.OrderRepository;
 import com.app.my_app.repos.OrderStatusRepository;
+import com.app.my_app.repos.ProductRepository;
 import com.app.my_app.repos.UserRepository;
 
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public class OrderService {
 
     @Autowired
     private CartItemService cartItemService;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     public OrderService(final OrderRepository orderRepository,
                         final OrderStatusRepository orderStatusRepository,
@@ -95,6 +99,17 @@ public class OrderService {
         Long totalPrice = 0L;
         order.setTotal(totalPrice);
 
+        // Đặt trạng thái mặc định là 1 (Chờ xác nhận) khi vừa đặt hàng
+        OrderStatus defaultStatus = orderStatusRepository.findById(1L).orElse(null);
+        if (defaultStatus == null) {
+            defaultStatus = new OrderStatus();
+            defaultStatus.setId(1L);
+            defaultStatus.setName("Chờ xác nhận");
+            try {
+                defaultStatus = orderStatusRepository.save(defaultStatus);
+            } catch (Exception ignored) {}
+        }
+        order.setStatus(defaultStatus);
 
         Order updateOrder = orderRepository.save(order);
 
@@ -103,6 +118,14 @@ public class OrderService {
         List<CartItem> cartItems = cartItemService.findAll();
 
         for (CartItem c : cartItems) {
+            Product product = c.getProduct();
+            if (product.getQuantity() == null || product.getQuantity() < c.getQuantity()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sản phẩm " + product.getName() + " không đủ số lượng tồn kho!");
+            }
+            // Trừ số lượng tồn kho
+            product.setQuantity(product.getQuantity() - c.getQuantity());
+            productRepository.save(product);
+
             OrderItem o = new OrderItem();
             o.setName(c.getProduct().getName());
             o.setPrice(c.getProduct().getPrice());
@@ -135,6 +158,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    @Transactional
     public void updateStatus(final Long id, final Long statusId) {
         if (statusId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "statusId is required");
@@ -142,6 +166,46 @@ public class OrderService {
         final Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng"));
         
+        Long oldStatusId = order.getStatus() != null ? order.getStatus().getId() : null;
+        
+        // Chặn cập nhật trạng thái nếu đơn hàng hiện tại đã bị hủy
+        if (oldStatusId != null && oldStatusId.equals(5L) && !statusId.equals(5L)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Đơn hàng đã bị hủy, không thể cập nhật trạng thái mới!");
+        }
+
+        // Chặn cập nhật trạng thái nếu đơn hàng đã giao thành công
+        if (oldStatusId != null && oldStatusId.equals(4L) && !statusId.equals(4L)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Đơn hàng đã giao thành công, không thể cập nhật trạng thái mới!");
+        }
+
+        // Xử lý hoàn trả/trừ lại tồn kho khi thay đổi trạng thái Hủy đơn (Trạng thái ID = 5)
+        if (statusId.equals(5L) && (oldStatusId == null || !oldStatusId.equals(5L))) {
+            // Chuyển sang trạng thái "Đã hủy" -> Cộng lại tồn kho
+            if (order.getOrderItems() != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    Product p = item.getProduct();
+                    if (p != null) {
+                        p.setQuantity((p.getQuantity() == null ? 0 : p.getQuantity()) + item.getQuantity());
+                        productRepository.save(p);
+                    }
+                }
+            }
+        } else if (!statusId.equals(5L) && oldStatusId != null && oldStatusId.equals(5L)) {
+            // Đơn hàng từ trạng thái "Đã hủy" vô tình bị chuyển sang trạng thái khác -> Trừ lại tồn kho
+            if (order.getOrderItems() != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    Product p = item.getProduct();
+                    if (p != null) {
+                        if (p.getQuantity() == null || p.getQuantity() < item.getQuantity()) {
+                            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sản phẩm " + p.getName() + " không đủ tồn kho để khôi phục đơn hàng!");
+                        }
+                        p.setQuantity(p.getQuantity() - item.getQuantity());
+                        productRepository.save(p);
+                    }
+                }
+            }
+        }
+
         OrderStatus status = orderStatusRepository.findById(statusId).orElse(null);
         
         if (status == null) {

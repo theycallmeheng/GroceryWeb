@@ -3,8 +3,8 @@ const API_URL = "http://localhost:8081";
 const token = localStorage.getItem("token") || ""; //jwt token
 
 const PAGES = {
-  login: "dangnhap.html",
-  home: "index.html",
+  login: "/dangnhap",
+  home: "/",
 };
 // tool
 
@@ -19,7 +19,7 @@ function numberToVnd(number) {
 }
 
 
-if (token==="") {
+if (token === "" && window.location.pathname !== PAGES.login && window.location.pathname !== "/dangnhap.html") {
   // navigate to login page
   window.location.href = PAGES.login;
 

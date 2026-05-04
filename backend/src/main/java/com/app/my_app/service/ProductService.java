@@ -61,6 +61,17 @@ public class ProductService {
         productRepository.save(product);
     }
 
+    public void addStock(final Long id, final Integer additionalQuantity) {
+        final Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
+        
+        // Yêu cầu Entity Product cần có trường 'quantity' (Integer)
+        int currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
+        product.setQuantity(currentStock + additionalQuantity);
+        
+        productRepository.save(product);
+    }
+
     public void delete(final Long id) {
         productRepository.deleteById(id);
     }

@@ -3,21 +3,49 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Check if token exists
     if (!token) {
-        window.location.href = '/dangnhap.html';
+        window.location.href = '/dangnhap';
         return;
     }
 
     // Thiết lập xử lý menu
     setupMenu(token);
 
-    // Mặc định load dashboard
-    loadView('dashboardView', token);
+    // Lấy view từ URL parameter (ví dụ: ?view=users)
+    const urlParams = new URLSearchParams(window.location.search);
+    const viewParam = urlParams.get('view');
+    const initialView = viewParam ? viewParam + 'View' : 'dashboardView';
+
+    // Đánh dấu active cho menu tương ứng
+    const menuItems = document.querySelectorAll('#adminMenu a');
+    menuItems.forEach(m => m.classList.remove('active'));
+    const activeItem = Array.from(menuItems).find(m => m.getAttribute('data-target') === initialView);
+    if (activeItem) {
+        activeItem.classList.add('active');
+    } else if (menuItems.length > 0) {
+        menuItems[0].classList.add('active');
+    }
+
+    // Load view ban đầu theo cấu hình URL
+    loadView(initialView, token);
+
+    // Xử lý khi nhấn nút Trở lại / Tiến lên (Back/Forward) của trình duyệt
+    window.addEventListener('popstate', function() {
+        const params = new URLSearchParams(window.location.search);
+        const vParam = params.get('view');
+        const vId = vParam ? vParam + 'View' : 'dashboardView';
+        
+        document.querySelectorAll('#adminMenu a').forEach(m => m.classList.remove('active'));
+        const aItem = Array.from(document.querySelectorAll('#adminMenu a')).find(m => m.getAttribute('data-target') === vId);
+        if (aItem) aItem.classList.add('active');
+
+        loadView(vId, token);
+    });
 
     // Logout event listener
     document.getElementById('logoutBtn').addEventListener('click', function() {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
-        window.location.href = '/dangnhap.html';
+        window.location.href = '/dangnhap';
     });
 });
 
@@ -32,6 +60,12 @@ function setupMenu(token) {
             this.classList.add('active');
             
             const targetView = this.getAttribute('data-target');
+            
+            // Thay đổi URL tương ứng với API/View đang gọi mà không load lại trang
+            const viewName = targetView.replace('View', '');
+            const newUrl = window.location.pathname + '?view=' + viewName;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+            
             loadView(targetView, token);
         });
     });
@@ -100,15 +134,12 @@ function loadView(viewId, token) {
                     customerName = `${order.users.firstname} ${order.users.lastname} (${order.users.username})`;
                 }
 
-                let statusName = 'Chờ xác nhận';
-                if (order.status) {
-                    if (typeof order.status === 'object') {
-                        statusName = order.status.name || 'Chờ xác nhận';
-                    } else {
-                        const s = statuses.find(x => x.id === parseInt(order.status));
-                        statusName = s ? s.name : order.status;
-                    }
-                }
+                // Lấy ID trạng thái, mặc định là 1 (Chờ xác nhận)
+                const statusId = order.status ? (order.status.id || order.status) : 1;
+                // Tìm đối tượng trạng thái từ danh sách đã định nghĩa
+                const statusObj = statuses.find(s => s.id === parseInt(statusId));
+                // Lấy tên trạng thái, có fallback
+                const statusName = statusObj ? statusObj.name : 'Trạng thái không xác định';
 
                 tbody.innerHTML += `
                     <tr>
@@ -137,14 +168,66 @@ function loadView(viewId, token) {
                         <td>${product.name}</td>
                         <td>${product.price}</td>
                         <td>${product.category ? product.category.name : 'N/A'}</td>
+                        <td><strong>${product.quantity || 0}</strong></td>
                         <td>
                             <button class="btn-warning" onclick="openEditProductModal(${product.id})" style="padding: 5px; cursor: pointer; border-radius: 4px; border: none; margin-right: 5px;">Sửa</button>
+                            <button class="btn-info" onclick="openStockModal(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.quantity || 0}, ${product.price})" style="padding: 5px; cursor: pointer; border-radius: 4px; border: none; margin-right: 5px; background-color: #17a2b8; color: white;">Nhập hàng</button>
                             <button class="btn-danger" onclick="deleteProduct(${product.id})" style="padding: 5px; cursor: pointer; background-color: #dc3545; color: white; border: none; border-radius: 4px;">Xóa</button>
                         </td>
                     </tr>
                 `;
             });
             document.getElementById('productsView').style.display = 'block';
+        });
+    } else if (viewId === 'revenueView') {
+        fetchAdminData('/api/admin/orders', headers, (orders) => {
+            // Lọc ra các đơn hàng đã Giao thành công (statusId === 4)
+            const successfulOrders = orders.filter(o => {
+                const statusId = o.status ? (o.status.id || o.status) : 1;
+                return parseInt(statusId) === 4;
+            });
+
+            let totalRevenue = 0;
+            let totalProfit = 0;
+            const productSales = {};
+
+            successfulOrders.forEach(order => {
+                const items = order.orderItems || order.orderDetails || order.items || [];
+                items.forEach(item => {
+                    const itemPrice = item.price || (item.product ? item.product.price : 0);
+                    const importPrice = calculateImportPrice(itemPrice);
+                    const profitPerItem = itemPrice - importPrice;
+                    
+                    totalRevenue += itemPrice * item.quantity;
+                    totalProfit += profitPerItem * item.quantity;
+
+                    // Nhóm số liệu theo từng sản phẩm
+                    const prodName = item.product ? item.product.name : item.name || 'Sản phẩm';
+                    if (!productSales[prodName]) {
+                        productSales[prodName] = { quantity: 0, revenue: 0, profit: 0 };
+                    }
+                    productSales[prodName].quantity += item.quantity;
+                    productSales[prodName].revenue += itemPrice * item.quantity;
+                    productSales[prodName].profit += profitPerItem * item.quantity;
+                });
+            });
+
+            document.getElementById('revTotalRevenue').innerText = totalRevenue.toLocaleString() + ' VNĐ';
+            document.getElementById('revTotalProfit').innerText = totalProfit.toLocaleString() + ' VNĐ';
+
+            const tbody = document.getElementById('revenueTableBody');
+            tbody.innerHTML = '';
+            for (const [name, stats] of Object.entries(productSales)) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${name}</td>
+                        <td>${stats.quantity}</td>
+                        <td>${stats.revenue.toLocaleString()} VNĐ</td>
+                        <td>${stats.profit.toLocaleString()} VNĐ</td>
+                    </tr>
+                `;
+            }
+            document.getElementById('revenueView').style.display = 'block';
         });
     } else if (viewId === 'shippersView') {
         fetchAdminData('/api/admin/shippers', headers, (data) => {
@@ -188,7 +271,7 @@ async function fetchAdminData(endpoint, headers, callback) {
             errorElem.innerText = 'Bạn không có quyền truy cập vào trang quản trị!';
             errorElem.style.display = 'block';
             setTimeout(() => {
-                window.location.href = '/index.html';
+                window.location.href = '/';
             }, 3000);
         } else {
             document.getElementById('error').innerText = 'Có lỗi xảy ra: ' + response.statusText;
@@ -250,6 +333,51 @@ function submitAssignShipper() {
             alert('Lỗi khi phân công Shipper');
         }
     });
+}
+
+// === CÁC HÀM XỬ LÝ NHẬP HÀNG TỒN KHO ===
+function calculateImportPrice(sellingPrice) {
+    if (sellingPrice >= 500000) return sellingPrice - 100000;
+    if (sellingPrice >= 300000) return sellingPrice - 70000;
+    if (sellingPrice >= 200000) return sellingPrice - 60000;
+    if (sellingPrice >= 100000) return sellingPrice - 30000;
+    if (sellingPrice >= 50000) return sellingPrice - 20000;
+    if (sellingPrice >= 30000) return sellingPrice - 10000;
+    if (sellingPrice >= 10000) return sellingPrice - 5000;
+    return sellingPrice - 3000;
+}
+
+function openStockModal(id, name, currentQuantity, price = 0) {
+    document.getElementById('stockProductId').innerText = id;
+    document.getElementById('stockProductName').value = name;
+    const importPrice = calculateImportPrice(price);
+    document.getElementById('stockImportPrice').value = importPrice.toLocaleString() + ' VNĐ';
+    document.getElementById('currentStock').value = currentQuantity || 0;
+    document.getElementById('addStockQty').value = 1;
+    document.getElementById('stockModal').style.display = 'block';
+}
+
+function closeStockModal() {
+    document.getElementById('stockModal').style.display = 'none';
+}
+
+function submitAddStock() {
+    const id = document.getElementById('stockProductId').innerText;
+    const qty = document.getElementById('addStockQty').value;
+    const token = localStorage.getItem('token');
+    
+    fetch(`http://localhost:8081/api/products/${id}/stock?quantity=${qty}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+    }).then(res => {
+        if (res.ok) {
+            alert('Nhập hàng thành công!');
+            closeStockModal();
+            loadView('productsView', token); // Tải lại bảng sản phẩm để cập nhật số lượng
+        } else {
+            alert('Có lỗi xảy ra khi nhập hàng.');
+        }
+    }).catch(err => console.error('Lỗi:', err));
 }
 
 // === CÁC HÀM XỬ LÝ CRUD NGƯỜI DÙNG ===
@@ -496,14 +624,33 @@ function viewOrderDetails(orderId) {
         ];
 
         const select = document.getElementById('modalStatusSelect');
-        select.innerHTML = '';
         
-        let currentStatusId = order.status ? (typeof order.status === 'object' ? order.status.id : parseInt(order.status)) : 1;
+        let currentStatusId = 1;
+        if (order.status) {
+            if (typeof order.status === 'object' && order.status.id != null) {
+                currentStatusId = parseInt(order.status.id);
+            } else if (!isNaN(parseInt(order.status))) {
+                currentStatusId = parseInt(order.status);
+            }
+        }
         
+        let optionsHtml = '';
         statuses.forEach(s => {
-            const isSelected = currentStatusId === s.id ? 'selected' : '';
-            select.innerHTML += `<option value="${s.id}" ${isSelected}>${s.name}</option>`;
+            const isSelected = (currentStatusId === s.id) ? 'selected' : '';
+            optionsHtml += `<option value="${s.id}" ${isSelected}>${s.name}</option>`;
         });
+        select.innerHTML = optionsHtml;
+        
+        // Khóa chức năng cập nhật nếu đơn hàng đã hủy hoặc đã giao thành công
+        const updateBtn = document.querySelector('#orderDetailModal button[onclick="submitUpdateStatus()"]');
+        if (currentStatusId === 5 || currentStatusId === 4) {
+            select.disabled = true;
+            if (updateBtn) updateBtn.style.display = 'none';
+        } else {
+            select.disabled = false;
+            if (updateBtn) updateBtn.style.display = 'inline-block';
+        }
+        
         document.getElementById('orderDetailModal').style.display = 'block';
     });
 }
@@ -517,7 +664,8 @@ function submitUpdateStatus() {
     const statusId = document.getElementById('modalStatusSelect').value;
     
     const token = localStorage.getItem('token');
-    fetch(`http://localhost:8081/api/orders/${orderId}/status`, {
+    // Truyền statusId qua cả Query Parameter (để phòng backend dùng @RequestParam) và Body
+    fetch(`http://localhost:8081/api/orders/${orderId}/status?statusId=${statusId}`, {
         method: 'PUT',
         headers: {
             'Authorization': `Bearer ${token}`,

@@ -32,8 +32,8 @@ public class Product {
     @Column(nullable = false)
     private Long price;
 
-    @Column(nullable = false)
-    private Long quantity;
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private Integer quantity = 0;
 
     @Column
     private String unit;

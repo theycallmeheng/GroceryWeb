@@ -178,9 +178,9 @@ async function dangnhap(event) {
       
       // navigation dựa trên role
       if (dt.role === "ROLE_ADMIN") {
-          window.location.href = "admin.html";
+          window.location.href = "/admin";
       } else {
-          window.location.href = "index.html";
+          window.location.href = "/";
       }
     })
     .catch((error) => {
@@ -208,7 +208,7 @@ async function dangky() {
 
     if (res.ok) {
       alert("Đăng ký thành công! Vui lòng đăng nhập.");
-      window.location.href = "dangnhap.html";
+      window.location.href = "/dangnhap";
     } else {
       const data = await res.text();
       

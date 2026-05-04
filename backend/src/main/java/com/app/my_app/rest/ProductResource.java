@@ -47,6 +47,12 @@ public class ProductResource {
         return new ResponseEntity<>(productService.create(productDTO), HttpStatus.CREATED);
     }
 
+    @PostMapping("/{id}/stock")
+    public ResponseEntity<Void> addStock(@PathVariable final Long id, @RequestParam final Integer quantity) {
+        productService.addStock(id, quantity);
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateProduct(@PathVariable final Long id,
             @RequestBody @Valid final ProductDTO productDTO) {

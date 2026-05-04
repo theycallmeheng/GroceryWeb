@@ -53,7 +53,7 @@ async function makeOrder() {
   console.log(res);
   
   if (res && res.id) {
-    window.location.href = "/donhang.html?id=" + res.id;
+    window.location.href = "/donhang?id=" + res.id;
   } else {
     alert("Có lỗi xảy ra khi đặt hàng!");
   }

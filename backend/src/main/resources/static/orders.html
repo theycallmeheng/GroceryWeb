@@ -65,15 +65,9 @@
     let orderPhone = order.phone || (order.users && order.users.phone) || 'N/A';
     let orderAddress = order.address || (order.users && order.users.address) || 'N/A';
     
-    let statusName = 'Chờ xác nhận';
-    if (order.status) {
-        if (typeof order.status === 'object') {
-            statusName = order.status.name || 'Chờ xác nhận';
-        } else {
-            const s = statuses.find(x => x.id === parseInt(order.status));
-            statusName = s ? s.name : order.status;
-        }
-    }
+    const statusId = order.status ? (order.status.id || order.status) : 1;
+    const statusObj = statuses.find(s => s.id === parseInt(statusId));
+    const statusName = statusObj ? statusObj.name : 'Chờ xác nhận';
 
     dsOrder.innerHTML += `
       <tr class="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600">
@@ -84,7 +78,7 @@
               <td class="px-6 py-4">${order.total}</td>           
               <td class="px-6 py-4">${statusName}</td>           
               <td class="px-6 py-4 text-right">
-                <a href="/donhang.html?id=${order.id}" class="font-medium text-blue-600 hover:underline dark:text-blue-500">Xem</a>
+                <a href="/donhang?id=${order.id}" class="font-medium text-blue-600 hover:underline dark:text-blue-500">Xem</a>
               </td>
             </tr>    
     `
