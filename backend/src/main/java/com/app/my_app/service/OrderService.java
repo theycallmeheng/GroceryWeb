@@ -248,6 +248,27 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    @Transactional
+    public void cancelOrderByUser(final Long id) {
+        final Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng"));
+        
+        // Kiểm tra xem đơn hàng có thuộc về user hiện hành không
+        if (order.getUsers() == null || !order.getUsers().getId().equals(authService.getCurrentUserId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền hủy đơn hàng của người khác!");
+        }
+
+        Long oldStatusId = order.getStatus() != null ? order.getStatus().getId() : null;
+        
+        // Chỉ cho phép hủy nếu trạng thái đang là "Chờ xác nhận" (ID = 1L)
+        if (oldStatusId == null || !oldStatusId.equals(1L)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ có thể hủy đơn hàng khi chưa được Admin xác nhận (Trạng thái: Chờ xác nhận)!");
+        }
+
+        // Gọi lại hàm updateStatus để cập nhật trạng thái là 5 (Đã hủy) và tự động hoàn trả số lượng vào tồn kho
+        updateStatus(id, 5L);
+    }
+
     public void delete(final Long id) {
         orderRepository.deleteById(id);
     }

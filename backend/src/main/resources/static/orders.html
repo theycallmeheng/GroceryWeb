@@ -9,6 +9,23 @@
   <link rel="stylesheet" href="css/bocuc.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* CSS cho Modal Chi tiết đơn hàng */
+    .modal {
+      display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+      overflow: auto; background-color: rgba(0,0,0,0.5); 
+    }
+    .modal-content {
+      background-color: #fefefe; margin: 10% auto; padding: 20px;
+      border: 1px solid #888; width: 60%; border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: black; }
+    .order-detail-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .order-detail-table th, .order-detail-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .order-detail-table th { background-color: #f2f2f2; }
+  </style>
 
 
 <body>
@@ -41,7 +58,16 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Chi tiết đơn hàng -->
+  <div id="orderDetailModal" class="modal">
+      <div class="modal-content">
+          <span class="close" onclick="closeOrderDetailModal()">&times;</span>
+          <h3 style="font-size: 1.5em; margin-bottom: 10px; font-weight: bold;">Chi tiết đơn hàng #<span id="detailOrderId"></span></h3>
+          <div id="orderDetailContent" style="line-height: 1.6;"></div>
+      </div>
   </div>
+
   <script src="js/config.js"></script>
   <script src="js/service.js"></script>
   <script src="js/sanpham.js"></script>
@@ -69,6 +95,12 @@
     const statusObj = statuses.find(s => s.id === parseInt(statusId));
     const statusName = statusObj ? statusObj.name : 'Chờ xác nhận';
 
+    // Nút hủy đơn hàng: Chỉ hiển thị khi trạng thái là "Chờ xác nhận" (id = 1)
+    let cancelBtnHtml = '';
+    if (parseInt(statusId) === 1) {
+        cancelBtnHtml = `<button onclick="cancelMyOrder(${order.id})" class="font-medium text-red-600 hover:underline dark:text-red-500 ml-3">Hủy</button>`;
+    }
+
     dsOrder.innerHTML += `
       <tr class="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600">
               <th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">${order.id}</th>
@@ -78,7 +110,8 @@
               <td class="px-6 py-4">${order.total}</td>           
               <td class="px-6 py-4">${statusName}</td>           
               <td class="px-6 py-4 text-right">
-                <a href="/donhang?id=${order.id}" class="font-medium text-blue-600 hover:underline dark:text-blue-500">Xem</a>
+                <button onclick="viewOrderDetail(${order.id})" class="font-medium text-blue-600 hover:underline dark:text-blue-500">Xem</button>
+                ${cancelBtnHtml}
               </td>
             </tr>    
     `
@@ -93,6 +126,91 @@
       domOrder(order);
     });
   }
+
+  async function cancelMyOrder(orderId) {
+    if (!confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) return;
+    
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`http://localhost:8081/api/orders/${orderId}/cancel`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            alert('Đã hủy đơn hàng thành công!');
+            window.location.reload(); // Load lại trang để cập nhật lại trạng thái mới nhất
+        } else {
+            const data = await response.json();
+            alert('Lỗi: ' + (data.error || data.message || 'Không thể hủy đơn hàng'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Lỗi kết nối Server!');
+    }
+  }
+
+  async function viewOrderDetail(orderId) {
+    const token = localStorage.getItem('token');
+    try {
+        const response = await fetch(`http://localhost:8081/api/orders/${orderId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+            const order = await response.json();
+            document.getElementById('detailOrderId').innerText = order.id;
+
+            // Tận dụng lại mảng statuses chuẩn trên frontend để fix lỗi sai trạng thái
+            const statusId = order.status ? (order.status.id || order.status) : 1;
+            const statusObj = statuses.find(s => s.id === parseInt(statusId));
+            const statusName = statusObj ? statusObj.name : 'Chờ xác nhận';
+
+            let orderPhone = order.phone || (order.users && order.users.phone) || 'N/A';
+            let orderAddress = order.address || (order.users && order.users.address) || 'N/A';
+
+            let content = `
+                <p><strong>Ngày đặt:</strong> ${order.createdAt || 'N/A'}</p>
+                <p><strong>Số điện thoại:</strong> ${orderPhone}</p>
+                <p><strong>Địa chỉ giao:</strong> ${orderAddress}</p>
+                <p><strong>Tổng tiền:</strong> ${order.total} VNĐ</p>
+                <p><strong>Trạng thái:</strong> <span style="color: blue; font-weight: bold;">${statusName}</span></p>
+                <p><strong>Shipper:</strong> ${order.shipper ? order.shipper.name + ' - ' + order.shipper.phone : 'Chưa phân công'}</p>
+                <h4 style="margin-top: 15px; font-weight: bold;">Danh sách sản phẩm:</h4>
+                <table class="order-detail-table">
+                    <thead>
+                        <tr><th>Sản phẩm</th><th>Số lượng</th><th>Đơn giá</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            const items = order.orderItems || [];
+            if (items.length > 0) {
+                items.forEach(item => {
+                    const itemPrice = item.price || (item.product ? item.product.price : 'N/A');
+                    const itemName = item.name || (item.product ? item.product.name : 'Sản phẩm');
+                    content += `<tr><td>${itemName}</td><td>${item.quantity}</td><td>${itemPrice} VNĐ</td></tr>`;
+                });
+            } else {
+                content += `<tr><td colspan="3" style="text-align: center;">Không có chi tiết sản phẩm.</td></tr>`;
+            }
+            content += `</tbody></table>`;
+            document.getElementById('orderDetailContent').innerHTML = content;
+            document.getElementById('orderDetailModal').style.display = 'block';
+        } else {
+            alert("Không thể tải chi tiết đơn hàng!");
+        }
+    } catch (error) {
+        console.error("Lỗi kết nối API:", error);
+    }
+  }
+
+  function closeOrderDetailModal() {
+      document.getElementById('orderDetailModal').style.display = 'none';
+  }
+
   loadOrder();
 </script>
 

@@ -87,6 +87,16 @@ public class OrderResource {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable final Long id) {
+        try {
+            orderService.cancelOrderByUser(id);
+            return ResponseEntity.ok().body("{\"message\": \"Hủy đơn hàng thành công!\"}");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"error\": \"" + e.getMessage() + "\"}");
+        }
+    }
+
     @DeleteMapping("/{id}")
     @ApiResponse(responseCode = "204")
     public ResponseEntity<Void> deleteOrder(@PathVariable final Long id) {
