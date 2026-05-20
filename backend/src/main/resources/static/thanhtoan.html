@@ -18,9 +18,14 @@
         .step-circle { width: 32px; height: 32px; background: #0d6efd; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; }
         .step-header { display: flex; align-items: center; margin-bottom: 20px; }
         .step-title { margin: 0; font-size: 1.2rem; font-weight: 600; }
-        .delivery-option { cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
-        .delivery-option:hover { border-color: #0d6efd; background-color: #f8f9fa; }
-        .delivery-option.active { border-color: #0d6efd; background-color: #e9ecef; }
+        /* CSS cho tùy chọn giao hàng */
+        .delivery-option { cursor: pointer; border: 2px solid #dee2e6; transition: all 0.2s; opacity: 0.5; color: #000 !important; }
+        .delivery-option:hover { border-color: #0d6efd; opacity: 0.8; }
+        .delivery-option.active { border-color: #0d6efd; background-color: #f0f8ff; opacity: 1; color: #0d6efd !important; }
+        /* Đảm bảo icon và text bên trong thừa hưởng màu từ cha */
+        .delivery-option.active div, .delivery-option.active i, .delivery-option.active span { color: #0d6efd !important; }
+        .delivery-option div, .delivery-option i, .delivery-option span { color: inherit; }
+
         .payment-option { cursor: pointer; border: 2px solid #dee2e6; border-radius: 8px; padding: 15px; text-align: center; transition: all 0.2s; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #495057; }
         .payment-option:hover { border-color: #0d6efd; }
         .payment-option.active { border-color: #0d6efd; background-color: #f0f8ff; color: #0d6efd; }
@@ -78,33 +83,15 @@
                         </div>
                         <div class="row g-3 ps-5 ds-thoi-gian-giao-hang">
                             <div class="col-sm-6">
-                                <div class="card p-3 h-100 delivery-option active" onclick="chonThoiGian(this, '90_phut')">
-                                    <div class="fw-bold text-primary mb-1"><i class="bi bi-lightning-charge me-1"></i>Chuyển phát nhanh</div>
-                                    <div class="text-muted small">Nhận hàng trong 90 phút</div>
+                                <div class="card p-3 h-100 delivery-option active" onclick="chonThoiGian(this, 'thuong', 15000)">
+                                    <div class="fw-bold mb-1"><i class="bi bi-truck me-1"></i>Giao hàng Thường</div>
+                                    <div class="small">Phí vận chuyển: 15.000đ</div>
                                 </div>
                             </div>
                             <div class="col-sm-6">
-                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'sang')">
-                                    <div class="fw-bold mb-1"><i class="bi bi-brightness-alt-high me-1"></i>Buổi sáng</div>
-                                    <div class="text-muted small">8:00 - 11:00</div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'trua')">
-                                    <div class="fw-bold mb-1"><i class="bi bi-brightness-high me-1"></i>Buổi trưa</div>
-                                    <div class="text-muted small">11:00 - 14:00</div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'chieu')">
-                                    <div class="fw-bold mb-1"><i class="bi bi-sunset me-1"></i>Buổi chiều</div>
-                                    <div class="text-muted small">14:00 - 17:00</div>
-                                </div>
-                            </div>
-                            <div class="col-sm-6">
-                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'toi')">
-                                    <div class="fw-bold mb-1"><i class="bi bi-moon-stars me-1"></i>Buổi tối</div>
-                                    <div class="text-muted small">17:00 - 20:00</div>
+                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'nhanh', 40000)">
+                                    <div class="fw-bold mb-1"><i class="bi bi-lightning-charge me-1"></i>Giao hàng Nhanh</div>
+                                    <div class="small">Phí vận chuyển: 40.000đ</div>
                                 </div>
                             </div>
                         </div>
@@ -165,16 +152,18 @@
 <!-- Script xử lý chọn thời gian giao hàng -->
 <script>
     // Giá trị mặc định lúc load trang nếu người dùng không click chọn
-    window.selectedDeliveryTime = '90_phut';
+    window.selectedDeliveryTime = 'thuong';
+    window.shippingFee = 15000;
 
-    function chonThoiGian(element, giaTri) {
+    function chonThoiGian(element, giaTri, phi) {
         const options = document.querySelectorAll('.delivery-option');
         options.forEach(opt => opt.classList.remove('active'));
-        // Thêm active vào ô vừa click
         element.classList.add('active');
-        // Lưu giá trị vào biến toàn cục để gửi lên server
         window.selectedDeliveryTime = giaTri;
-        console.log("Đã chọn thời gian:", giaTri);
+        window.shippingFee = phi;
+        
+        // Gọi hàm cập nhật lại tổng tiền trong thanhtoan.js
+        if (typeof updateFinalTotal === 'function') updateFinalTotal();
     }
 </script>
 
