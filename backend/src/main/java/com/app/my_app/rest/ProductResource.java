@@ -48,8 +48,10 @@ public class ProductResource {
     }
 
     @PostMapping("/{id}/stock")
-    public ResponseEntity<Void> addStock(@PathVariable final Long id, @RequestParam final Integer quantity) {
-        productService.addStock(id, quantity);
+    public ResponseEntity<Void> addStock(@PathVariable final Long id,
+            @RequestParam final Integer quantity,
+            @RequestParam(required = false) final Long importPrice) {
+        productService.addStock(id, quantity, importPrice);
         return ResponseEntity.ok().build();
     }
 

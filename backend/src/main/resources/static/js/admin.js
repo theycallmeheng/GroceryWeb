@@ -335,8 +335,8 @@ function calculateImportPrice(sellingPrice) {
 function openStockModal(id, name, currentQuantity, price = 0) {
     document.getElementById('stockProductId').innerText = id;
     document.getElementById('stockProductName').value = name;
-    const importPrice = calculateImportPrice(price);
-    document.getElementById('stockImportPrice').value = importPrice.toLocaleString() + ' VNĐ';
+    const importPrice = Math.max(0, calculateImportPrice(price || 0));
+    document.getElementById('stockImportPrice').value = importPrice;
     document.getElementById('currentStock').value = currentQuantity || 0;
     document.getElementById('addStockQty').value = 1;
     document.getElementById('stockModal').style.display = 'block';
@@ -348,10 +348,18 @@ function closeStockModal() {
 
 function submitAddStock() {
     const id = document.getElementById('stockProductId').innerText;
-    const qty = document.getElementById('addStockQty').value;
+    const qty = parseInt(document.getElementById('addStockQty').value, 10);
+    const importPriceRaw = document.getElementById('stockImportPrice').value.trim();
+    const importPrice = importPriceRaw === '' ? null : parseFloat(importPriceRaw);
     const token = localStorage.getItem('token');
-    
-    fetch(`http://localhost:8081/api/products/${id}/stock?quantity=${qty}`, {
+
+    if (!qty || qty < 1 || (importPrice !== null && (isNaN(importPrice) || importPrice < 0))) {
+        alert('Vui lòng nhập số lượng hợp lệ và giá nhập hợp lệ (hoặc để trống để tự động tính).');
+        return;
+    }
+
+    const importPriceParam = importPrice === null ? '' : `&importPrice=${importPrice}`;
+    fetch(`http://localhost:8081/api/products/${id}/stock?quantity=${qty}${importPriceParam}`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
     }).then(res => {
@@ -505,11 +513,22 @@ function closeProductFormModal() {
 }
 
 function saveProduct() {
+    const name = document.getElementById('productName').value.trim();
+    const priceRaw = document.getElementById('productPrice').value;
+    const image = document.getElementById('productImage').value.trim();
+    const categoryId = parseInt(document.getElementById('productCategory').value);
+    const price = parseFloat(priceRaw);
+
+    if (!name || !image || !categoryId || isNaN(price) || price < 0) {
+        alert('Vui lòng nhập đủ Tên sản phẩm, URL hình ảnh, Giá bán ra và Danh mục hợp lệ.');
+        return;
+    }
+
     const data = {
-        name: document.getElementById('productName').value,
-        price: parseFloat(document.getElementById('productPrice').value) || 0,
-        image: document.getElementById('productImage').value,
-        category: { id: parseInt(document.getElementById('productCategory').value) }
+        name: name,
+        price: price,
+        image: image,
+        category: { id: categoryId }
     };
 
     const token = localStorage.getItem('token');

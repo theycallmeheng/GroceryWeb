@@ -26,11 +26,14 @@ public class Product {
     @Column(name = "\"description\"")
     private String description;
 
-    @Column
+    @Column(length = 1000)
     private String image;
 
     @Column(nullable = false)
     private Long price;
+
+    @Column(nullable = false, columnDefinition = "bigint default 0")
+    private Long importPrice = 0L;
 
     @Column(nullable = false, columnDefinition = "integer default 0")
     private Integer quantity = 0;

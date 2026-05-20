@@ -18,11 +18,13 @@ public class ProductDTO {
     @Size(max = 255)
     private String description;
 
-    @Size(max = 255)
+    @Size(max = 1000)
     private String image;
 
 
     private Long price;
+
+    private Long importPrice;
 
 
     private Integer quantity;

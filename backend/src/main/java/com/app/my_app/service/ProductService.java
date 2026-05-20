@@ -61,15 +61,38 @@ public class ProductService {
         productRepository.save(product);
     }
 
-    public void addStock(final Long id, final Integer additionalQuantity) {
+    public void addStock(final Long id, final Integer additionalQuantity, final Long importPrice) {
         final Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy sản phẩm"));
         
         // Yêu cầu Entity Product cần có trường 'quantity' (Integer)
         int currentStock = product.getQuantity() != null ? product.getQuantity() : 0;
         product.setQuantity(currentStock + additionalQuantity);
+
+        final Long resolvedImportPrice = resolveImportPrice(importPrice, product.getPrice());
+        if (resolvedImportPrice != null) {
+            product.setImportPrice(resolvedImportPrice);
+        }
         
         productRepository.save(product);
+    }
+
+    private Long resolveImportPrice(final Long inputImportPrice, final Long sellingPrice) {
+        if (inputImportPrice != null && inputImportPrice >= 0) {
+            return inputImportPrice;
+        }
+        if (sellingPrice == null) {
+            return null;
+        }
+        final long price = sellingPrice;
+        if (price >= 500000) return price - 100000;
+        if (price >= 300000) return price - 70000;
+        if (price >= 200000) return price - 60000;
+        if (price >= 100000) return price - 30000;
+        if (price >= 50000) return price - 20000;
+        if (price >= 30000) return price - 10000;
+        if (price >= 10000) return price - 5000;
+        return price - 3000;
     }
 
     public void delete(final Long id) {

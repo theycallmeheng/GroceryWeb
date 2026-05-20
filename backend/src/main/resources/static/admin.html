@@ -234,6 +234,7 @@
                 </div>
             </div>
         </div>
+    </div>
     <div id="productModal" class="modal" style="display:none;">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -242,9 +243,9 @@
                     <button type="button" class="btn-close" onclick="closeProductFormModal()"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3"><label class="form-label fw-bold">Tên Sản Phẩm:</label><input type="text" id="productName" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label fw-bold">Giá:</label><input type="number" id="productPrice" class="form-control"></div>
-                    <div class="mb-3"><label class="form-label fw-bold">URL Hình Ảnh:</label><input type="text" id="productImage" class="form-control"></div>
+                    <div class="mb-3"><label class="form-label fw-bold">Tên Sản Phẩm:</label><input type="text" id="productName" class="form-control" placeholder="Nhập tên sản phẩm" required></div>
+                    <div class="mb-3"><label class="form-label fw-bold">Giá bán ra:</label><input type="number" id="productPrice" class="form-control" placeholder="Nhập giá bán" min="0" step="1000" required></div>
+                    <div class="mb-3"><label class="form-label fw-bold">URL Hình Ảnh:</label><input type="url" id="productImage" class="form-control" placeholder="https://..." required></div>
                     <div class="mb-4">
                         <label class="form-label fw-bold">Danh Mục:</label>
                         <select id="productCategory" class="form-select">
@@ -298,7 +299,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3"><label class="form-label fw-bold">Tên Sản Phẩm:</label><input type="text" id="stockProductName" class="form-control bg-light" readonly></div>
-                    <div class="mb-3"><label class="form-label fw-bold">Giá nhập (Dự kiến 1 SP):</label><input type="text" id="stockImportPrice" class="form-control bg-light text-warning fw-bold" readonly></div>
+                    <div class="mb-3"><label class="form-label fw-bold">Giá nhập (1 SP):</label><input type="number" id="stockImportPrice" class="form-control bg-light text-warning fw-bold" min="0" step="1000" placeholder="Để trống để tự động tính"></div>
                     <div class="mb-3"><label class="form-label fw-bold">Tồn kho hiện tại:</label><input type="number" id="currentStock" class="form-control bg-light" readonly></div>
                     <div class="mb-4"><label class="form-label fw-bold">Số lượng nhập thêm:</label><input type="number" id="addStockQty" class="form-control" min="1" value="1"></div>
                     <button onclick="submitAddStock()" class="btn btn-primary w-100 py-2">Xác nhận Nhập hàng</button>

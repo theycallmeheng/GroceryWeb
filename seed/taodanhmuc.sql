@@ -4,5 +4,5 @@ INSERT INTO category (id, name, description) VALUES
 (3, 'Thịt và cá', ''),
 (4, 'Trứng và sữa', ''),
 (5, 'Bánh / Đồ ăn nhanh', ''),
-(6, 'Gia vị', '');
+(6, 'Gia vị', ''),
 (7, 'Hóa mỹ phẩm & Đồ dùng', ' ');
