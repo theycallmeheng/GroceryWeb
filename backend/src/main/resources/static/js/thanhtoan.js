@@ -16,6 +16,7 @@ function matHang(c) {
 
 let totalAmount = 0; // Biến lưu tổng tiền để gửi khi đặt hàng
 let selectedPaymentMethod = 'COD'; // Mặc định là thanh toán khi nhận hàng
+window.cartSubtotal = 0; // Lưu tiền hàng riêng để tính toán linh hoạt
 
 // Hàm tải giỏ hàng và tính tổng tiền
 async function loadCart() {
@@ -32,14 +33,21 @@ async function loadCart() {
   });
 
   console.log("Tổng cộng:", total);
-  totalAmount = total + 15000;
-  
-  // Hiển thị các loại tiền
-  document.getElementById("tongTienHang").innerHTML = numberToVnd(total);
-  document.getElementById("phiVanChuyen").innerHTML = numberToVnd(15000);
-  document.getElementById("tongTien").innerHTML = numberToVnd(totalAmount);
-  
-  updateQrCode();
+  window.cartSubtotal = total;
+  updateFinalTotal(); // Gọi hàm cập nhật hiển thị
+}
+
+// Hàm cập nhật tổng tiền hiển thị dựa trên phí vận chuyển đã chọn
+window.updateFinalTotal = function() {
+    const subtotal = window.cartSubtotal || 0;
+    const fee = window.shippingFee || 15000;
+    totalAmount = subtotal + fee;
+
+    document.getElementById("tongTienHang").innerHTML = numberToVnd(subtotal);
+    document.getElementById("phiVanChuyen").innerHTML = numberToVnd(fee);
+    document.getElementById("tongTien").innerHTML = numberToVnd(totalAmount);
+
+    updateQrCode(); // Cập nhật lại mã QR theo số tiền mới
 }
 
 // Hàm chọn phương thức thanh toán
@@ -63,8 +71,8 @@ window.chonPhuongThucThanhToan = function(element, method) {
 
 function updateQrCode() {
     const bankId = "MB"; // Thay bằng mã ngân hàng của bạn (VD: MB, VCB, TCB)
-    const accountNo = "0123456789"; // Thay bằng số tài khoản của bạn
-    const accountName = "NGUYEN VAN A"; // Thay bằng tên chủ tài khoản (viết hoa không dấu)
+    const accountNo = "0338744205"; // Thay bằng số tài khoản của bạn
+    const accountName = "HOANG DINH DAT"; // Thay bằng tên chủ tài khoản (viết hoa không dấu)
     
     const sdt = document.getElementById("sdt").value || "Khach";
     const addInfo = "Thanh toan don hang SDT " + sdt; // Sử dụng SDT làm nội dung CK
@@ -84,7 +92,7 @@ async function makeOrder() {
   const orderData = {
     phone: document.getElementById("sdt").value,
     address: document.getElementById("diachi").value,
-    total: totalAmount, // Gửi kèm tổng tiền (bao gồm phí ship)
+      total: totalAmount, 
     deliveryTime: window.selectedDeliveryTime || '90_phut', // Gửi thêm thời gian giao hàng
     paymentMethod: selectedPaymentMethod // Gửi thêm thông tin chọn phương thức
   };
