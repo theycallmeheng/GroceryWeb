@@ -1,0 +1,248 @@
+/* Nhúng Font chữ Inter từ Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    /* Bảng màu hiện đại */
+    --primary-color: #3B82F6; /* Xanh dương chuẩn Tailwind */
+    --primary-hover: #2563EB;
+    --bg-color: #F3F4F6; /* Nền xám nhạt */
+    --text-main: #1F2937; /* Chữ xám đậm */
+    --text-muted: #6B7280; /* Chữ phụ */
+    --card-bg: #FFFFFF;
+    
+    /* Hiệu ứng bo góc & đổ bóng */
+    --border-radius: 12px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s ease;
+}
+
+/* Reset font chữ toàn trang */
+body, h1, h2, h3, h4, h5, p, span, a, div, input, button {
+    font-family: 'Inter', sans-serif !important;
+    color: var(--text-main);
+}
+
+body {
+    background-color: var(--bg-color);
+}
+
+/* --- CẢI TIẾN CÁC NÚT BẤM (BUTTONS) --- */
+button, .nut-dat-hang, .btn-primary, .btn-save, input[type="submit"] {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    border: none !important;
+    cursor: pointer;
+    transition: var(--transition) !important;
+    font-weight: 500 !important;
+    padding: 10px 20px;
+}
+
+button:hover, .nut-dat-hang:hover, .btn-primary:hover, .btn-save:hover, input[type="submit"]:hover {
+    background-color: var(--primary-hover) !important;
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+}
+
+/* --- CẢI TIẾN CÁC KHỐI NỘI DUNG (CARDS) --- */
+.tt-ca-nhan > div, .tt-don-hang > div, .card, .profile-container, .modal-content, .bieumau, .giao-dien-trong-noi-dung {
+    background-color: var(--card-bg) !important;
+    border-radius: var(--border-radius) !important;
+    box-shadow: var(--shadow-md) !important;
+    border: none !important;
+    transition: var(--transition);
+}
+
+/* --- CẢI TIẾN CÁC Ô NHẬP LIỆU (INPUTS) --- */
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], textarea, select {
+    border-radius: 8px !important;
+    border: 1px solid #D1D5DB !important;
+    padding: 10px 14px !important;
+    transition: var(--transition) !important;
+    background-color: #F9FAFB !important;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none !important;
+    background-color: #FFFFFF !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* --- CẢI TIẾN BẢNG (TABLES) --- */
+table.admin-table, table#danhsachmathang, .order-detail-table {
+    border-collapse: separate !important;
+    border-spacing: 0;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    background-color: white;
+}
+
+/* --- BANNER QUANG CAO SAN PHAM --- */
+.ads-banner {
+    background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+    padding: 18px 0 22px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.ads-banner.hidden {
+    display: none;
+}
+
+.ads-banner-inner {
+    width: min(1200px, 96vw);
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+    padding: 18px 18px 22px;
+    position: relative;
+}
+
+.ads-close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ads-header {
+    padding: 6px 6px 14px;
+}
+
+.ads-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+}
+
+.ads-header p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+}
+
+.ads-rail {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+}
+
+.ads-nav {
+    width: 42px;
+    height: 42px;
+    border-radius: 9999px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    font-size: 20px;
+    line-height: 1;
+    color: #374151;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ads-nav:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.ads-list {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+}
+
+.ads-item {
+    background: #ffffff;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 14px;
+    align-items: center;
+    width: min(820px, 100%);
+    padding: 10px 14px;
+    animation: adsSlide 0.45s ease;
+}
+
+.ads-item img {
+    width: 160px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.ads-item-body {
+    padding: 4px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ads-item-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    min-height: 38px;
+}
+
+.ads-item-price {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.ads-item button {
+    margin-top: auto;
+    width: 180px;
+}
+
+@keyframes adsSlide {
+    from {
+        opacity: 0;
+        transform: translateX(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .ads-banner-inner {
+        padding: 14px;
+    }
+    .ads-rail {
+        grid-template-columns: 1fr;
+    }
+    .ads-nav {
+        width: 100%;
+        height: 38px;
+        border-radius: 10px;
+    }
+    .ads-item {
+        grid-template-columns: 1fr;
+        text-align: center;
+        justify-items: center;
+    }
+    .ads-item img {
+        width: 100%;
+        height: 160px;
+    }
+    .ads-item button {
+        width: 100%;
+    }
+}

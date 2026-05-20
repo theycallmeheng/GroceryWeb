@@ -4,70 +4,64 @@
 <head>
   <meta charset="UTF-8">
   <title>Cửa hàng</title>
-  <link rel="stylesheet" href="css/reset.css">
-  <link rel="stylesheet" href="css/sanpham.css">
-  <link rel="stylesheet" href="css/bocuc.css">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/bocuc.css">
+    <link rel="stylesheet" href="css/reset.css">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/modern.css">
   <style>
-    /* CSS cho Modal Chi tiết đơn hàng */
-    .modal {
-      display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-      overflow: auto; background-color: rgba(0,0,0,0.5); 
-    }
-    .modal-content {
-      background-color: #fefefe; margin: 10% auto; padding: 20px;
-      border: 1px solid #888; width: 60%; border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-    .close:hover { color: black; }
-    .order-detail-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .order-detail-table th, .order-detail-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    .order-detail-table th { background-color: #f2f2f2; }
+    body { background-color: #f8f9fa; }
+    .modal[style*="display: block"] { opacity: 1; background-color: rgba(0,0,0,0.5); display: block !important; overflow-x: hidden; overflow-y: auto; }
   </style>
 
 
 <body>
-  <!-- Than -->
-  <div class="than">
-    <!-- Thanh tren -->
-    <div class="tieu-de" include-html="/components/header.html">
-    </div>
+  <header class="tieu-de shadow-sm" include-html="/components/header.html"></header>
 
-    <div class="noi_dung">
-      <div id="ds-orders">
-        <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
-          <thead class="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
-            <tr>
-              <th scope="col" class="px-6 py-3">ID</th>
-              <th scope="col" class="px-6 py-3">Ngày</th>
-              <th scope="col" class="px-6 py-3">SĐT</th>
-              <th scope="col" class="px-6 py-3">Địa chỉ</th>
-              <th scope="col" class="px-6 py-3">Tổng</th>
-              <th scope="col" class="px-6 py-3">Trang thái</th>
-              <th scope="col" class="px-6 py-3">
-                <span class="sr-only">Edit</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody id="listOrder">
-                   
-          </tbody>
-        </table>
+  <div class="container py-5">
+      <h2 class="mb-4 fw-bold">Đơn hàng của tôi</h2>
+      <div class="card shadow-sm border-0">
+          <div class="card-body p-0">
+              <div class="table-responsive">
+                  <table class="table table-hover align-middle mb-0">
+                      <thead class="table-light">
+                          <tr>
+                              <th>Mã ĐH</th>
+                              <th>Ngày đặt</th>
+                              <th>Số điện thoại</th>
+                              <th>Địa chỉ</th>
+                              <th>Tổng tiền</th>
+                              <th>Trạng thái</th>
+                              <th class="text-end">Thao tác</th>
+                          </tr>
+                      </thead>
+                      <tbody id="listOrder">
+                      </tbody>
+                  </table>
+              </div>
+          </div>
       </div>
-    </div>
   </div>
 
   <!-- Modal Chi tiết đơn hàng -->
   <div id="orderDetailModal" class="modal">
-      <div class="modal-content">
-          <span class="close" onclick="closeOrderDetailModal()">&times;</span>
-          <h3 style="font-size: 1.5em; margin-bottom: 10px; font-weight: bold;">Chi tiết đơn hàng #<span id="detailOrderId"></span></h3>
-          <div id="orderDetailContent" style="line-height: 1.6;"></div>
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+          <div class="modal-content border-0 shadow">
+              <div class="modal-header bg-light">
+                  <h5 class="modal-title fw-bold">Chi tiết đơn hàng #<span id="detailOrderId" class="text-primary"></span></h5>
+                  <button type="button" class="btn-close" onclick="closeOrderDetailModal()"></button>
+              </div>
+              <div class="modal-body">
+                  <div id="orderDetailContent"></div>
+              </div>
+          </div>
       </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/config.js"></script>
   <script src="js/service.js"></script>
   <script src="js/sanpham.js"></script>
@@ -98,19 +92,19 @@
     // Nút hủy đơn hàng: Chỉ hiển thị khi trạng thái là "Chờ xác nhận" (id = 1)
     let cancelBtnHtml = '';
     if (parseInt(statusId) === 1) {
-        cancelBtnHtml = `<button onclick="cancelMyOrder(${order.id})" class="font-medium text-red-600 hover:underline dark:text-red-500 ml-3">Hủy</button>`;
+        cancelBtnHtml = `<button onclick="cancelMyOrder(${order.id})" class="btn btn-sm btn-outline-danger ms-2"><i class="bi bi-x-circle me-1"></i>Hủy</button>`;
     }
 
     dsOrder.innerHTML += `
-      <tr class="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-600">
-              <th scope="row" class="whitespace-nowrap px-6 py-4 font-medium text-gray-900 dark:text-white">${order.id}</th>
-              <td class="px-6 py-4">${order.createdAt}</td>
-              <td class="px-6 py-4">${orderPhone}</td>
-              <td class="px-6 py-4">${orderAddress}</td>
-              <td class="px-6 py-4">${order.total}</td>           
-              <td class="px-6 py-4">${statusName}</td>           
-              <td class="px-6 py-4 text-right">
-                <button onclick="viewOrderDetail(${order.id})" class="font-medium text-blue-600 hover:underline dark:text-blue-500">Xem</button>
+      <tr>
+              <td><strong>#${order.id}</strong></td>
+              <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+              <td>${orderPhone}</td>
+              <td>${orderAddress}</td>
+              <td class="text-primary fw-bold">${order.total.toLocaleString()} đ</td>           
+              <td><span class="badge ${parseInt(statusId) === 1 ? 'bg-warning text-dark' : parseInt(statusId) === 4 ? 'bg-success' : parseInt(statusId) === 5 ? 'bg-danger' : 'bg-info'}">${statusName}</span></td>           
+              <td class="text-end">
+                <button onclick="viewOrderDetail(${order.id})" class="btn btn-sm btn-primary"><i class="bi bi-eye me-1"></i>Xem</button>
                 ${cancelBtnHtml}
               </td>
             </tr>    
@@ -172,16 +166,17 @@
             let orderAddress = order.address || (order.users && order.users.address) || 'N/A';
 
             let content = `
-                <p><strong>Ngày đặt:</strong> ${order.createdAt || 'N/A'}</p>
-                <p><strong>Số điện thoại:</strong> ${orderPhone}</p>
-                <p><strong>Địa chỉ giao:</strong> ${orderAddress}</p>
-                <p><strong>Tổng tiền:</strong> ${order.total} VNĐ</p>
-                <p><strong>Trạng thái:</strong> <span style="color: blue; font-weight: bold;">${statusName}</span></p>
-                <p><strong>Shipper:</strong> ${order.shipper ? order.shipper.name + ' - ' + order.shipper.phone : 'Chưa phân công'}</p>
-                <h4 style="margin-top: 15px; font-weight: bold;">Danh sách sản phẩm:</h4>
-                <table class="order-detail-table">
-                    <thead>
-                        <tr><th>Sản phẩm</th><th>Số lượng</th><th>Đơn giá</th></tr>
+                <div class="row mb-4 g-3">
+                    <div class="col-md-6"><p class="mb-1 text-muted">Ngày đặt:</p><p class="fw-bold">${new Date(order.createdAt).toLocaleString() || 'N/A'}</p></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Số điện thoại:</p><p class="fw-bold">${orderPhone}</p></div>
+                    <div class="col-md-12"><p class="mb-1 text-muted">Địa chỉ giao:</p><p class="fw-bold">${orderAddress}</p></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Trạng thái:</p><span class="badge bg-info fs-6">${statusName}</span></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Shipper:</p><p class="fw-bold">${order.shipper ? order.shipper.name + ' - ' + order.shipper.phone : 'Chưa phân công'}</p></div>
+                </div>
+                <h6 class="fw-bold mb-3">Danh sách sản phẩm:</h6>
+                <div class="table-responsive"><table class="table table-bordered table-sm align-middle">
+                    <thead class="table-light">
+                        <tr><th>Sản phẩm</th><th class="text-center">Số lượng</th><th class="text-end">Đơn giá</th></tr>
                     </thead>
                     <tbody>
             `;
@@ -191,12 +186,12 @@
                 items.forEach(item => {
                     const itemPrice = item.price || (item.product ? item.product.price : 'N/A');
                     const itemName = item.name || (item.product ? item.product.name : 'Sản phẩm');
-                    content += `<tr><td>${itemName}</td><td>${item.quantity}</td><td>${itemPrice} VNĐ</td></tr>`;
+                    content += `<tr><td>${itemName}</td><td class="text-center">${item.quantity}</td><td class="text-end">${itemPrice.toLocaleString()} đ</td></tr>`;
                 });
             } else {
                 content += `<tr><td colspan="3" style="text-align: center;">Không có chi tiết sản phẩm.</td></tr>`;
             }
-            content += `</tbody></table>`;
+            content += `</tbody></table></div><div class="text-end mt-3"><h5 class="fw-bold">Tổng tiền: <span class="text-primary">${order.total.toLocaleString()} đ</span></h5></div>`;
             document.getElementById('orderDetailContent').innerHTML = content;
             document.getElementById('orderDetailModal').style.display = 'block';
         } else {

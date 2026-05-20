@@ -8,13 +8,12 @@
     <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/donhang.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modern.css">
 <body>
-    <!-- Than -->
-    <div class="than">
-        <!-- Thanh tren -->
-        <div class="tieu-de" include-html="/components/header.html">
-        </div>
+    <!-- Thanh tren -->
+    <header class="tieu-de shadow-sm" include-html="/components/header.html"></header>
 
+    <div class="than">
         <div class="noi_dung">
             <div class="than don-hang">
                 <div class="trangthai" id="trangThaiDonHang">Trạng thái: Đã xác nhận</div>
@@ -36,7 +35,13 @@
                     <div class="tongvaphuongthuc">
                         <div class="phuongthucthanhtoan">
                             <h4> Phương thức thanh toán</h4>
-                            Thanh toán khi nhận hàng                    
+                            <div id="paymentMethodText">Thanh toán khi nhận hàng (hoặc Chuyển khoản QR)</div>
+                            <!-- Thêm phần hiển thị QR Code -->
+                            <div id="qrCodeThanhToan" style="margin-top: 15px; text-align: center;">
+                                <p style="font-size: 14px; font-weight: bold; margin-bottom: 5px;">Quét mã QR để thanh toán</p>
+                                <img id="imgQrCode" src="" alt="Mã QR Thanh Toán" style="width: 200px; height: 200px; border: 1px solid #eee; border-radius: 8px; padding: 5px; background: #fff;">
+                                <p style="font-size: 13px; margin-top: 5px; color: #555;">Nội dung CK: <strong id="noiDungCk"></strong></p>
+                            </div>
                         </div>
                         <div class="tong">
                             <h4>Tổng tiền</h4>
@@ -85,7 +90,6 @@
             </div>
         </div>
     </div>
-    </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <!-- partial -->
@@ -94,9 +98,7 @@
 
     </script>
 
-    <script src="js/script.js"></script>
     <script src="js/service.js"></script>
-    <script src="js/thanhtoan.js"></script>
     <script src="js/chung.js"></script>
 </body>
 
@@ -148,6 +150,16 @@
         document.getElementById("ngayMua").innerHTML = new Date(order.createdAt).toLocaleDateString();
         document.getElementById("tongMatHang").innerHTML = order.orderItems.length;
 
+        // Thêm phần tạo mã QR thanh toán (Sử dụng VietQR API)
+        const bankId = "MB"; // Mã ngân hàng (VD: MB, VCB, TCB,...)
+        const accountNo = "0123456789"; // Số tài khoản ngân hàng
+        const accountName = "NGUYEN VAN A"; // Tên chủ tài khoản (viết hoa không dấu)
+        const amount = order.total + 15000; // Tổng tiền thanh toán (bao gồm phí vận chuyển)
+        const addInfo = "Thanh toan don hang " + order.id; // Nội dung chuyển khoản
+        
+        const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(accountName)}`;
+        document.getElementById("imgQrCode").src = qrUrl;
+        document.getElementById("noiDungCk").innerText = addInfo;
    }
    getOrder();
     

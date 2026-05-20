@@ -4,162 +4,162 @@
 <head>
     <meta charset="UTF-8">
     <title>Thanh toán</title>
-    <link rel="stylesheet" href="css/reset.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/bocuc.css">
-    <link rel="stylesheet" href="css/thanhtoan.css">
+    <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modern.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <style>
-        /* Thêm một chút CSS để textarea trông đẹp hơn giống trong ảnh của bạn */
-        .dia-chi-ct-input {
-            width: 100%;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 10px;
-            font-family: inherit;
-            resize: none;
-            margin-top: 5px;
-        }
-        .ds-thoi-gian-giao-hang > div {
-            cursor: pointer; /* Để hiện bàn tay khi di chuột vào ô chọn giờ */
-        }
+        body { background-color: #f8f9fa; }
+        .step-circle { width: 32px; height: 32px; background: #0d6efd; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; }
+        .step-header { display: flex; align-items: center; margin-bottom: 20px; }
+        .step-title { margin: 0; font-size: 1.2rem; font-weight: 600; }
+        .delivery-option { cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .delivery-option:hover { border-color: #0d6efd; background-color: #f8f9fa; }
+        .delivery-option.active { border-color: #0d6efd; background-color: #e9ecef; }
+        .payment-option { cursor: pointer; border: 2px solid #dee2e6; border-radius: 8px; padding: 15px; text-align: center; transition: all 0.2s; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #495057; }
+        .payment-option:hover { border-color: #0d6efd; }
+        .payment-option.active { border-color: #0d6efd; background-color: #f0f8ff; color: #0d6efd; }
+        
+        /* CSS tương thích với HTML render từ thanhtoan.js */
+        .ds-mat-hang { max-height: 400px; overflow-y: auto; padding-right: 10px; }
+        .ds-mat-hang::-webkit-scrollbar { width: 5px; }
+        .ds-mat-hang::-webkit-scrollbar-thumb { background: #ced4da; border-radius: 4px; }
+        .mat-hang { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed #dee2e6; }
+        .mat-hang > div > span { color: #495057; font-weight: 500; }
+        .mat-hang .font-bold { font-weight: bold; color: #0d6efd; font-size: 1.1rem; }
+        #qrCodeContainer { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 
 <body>
-    <div class="than">
-        <div class="tieu-de" include-html="/components/header.html">
-        </div>
-        <div class="noi-dung">
-            <div class="tt-thanh-toan">
-                <div class="tt-ca-nhan">
+    <header class="tieu-de shadow-sm" include-html="/components/header.html"></header>
 
-                    <!-- Mục 1: Số liên hệ -->
-                    <div>
-                        <div class="tieu-de">
-                            <div>
-                                <span>1</span>
-                                <p>Số liên hệ</p>
-                            </div>
-                            <button class="button-3">Cập nhật</button>
+    <div class="container py-5">
+        <div class="row g-4">
+            <!-- Cột trái: Form thanh toán -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <div class="step-header">
+                            <div class="step-circle">1</div>
+                            <h3 class="step-title">Thông tin liên hệ</h3>
                         </div>
-                        <div>
-                            <div>Điện thoại:</div>
-                            <input id="sdt" class="sdt-input rounded-lg" value="">
-                        </div>
-                    </div>
-                        
-                    <!-- Mục 2: Địa chỉ gửi -->
-                    <div>
-                        <div class="tieu-de">
-                            <div>
-                                <span>2</span>
-                                <p>Địa chỉ gửi</p>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="dia-chi">
-                                <div>
-                                    <p class="loai-dia-chi">Gửi từ:</p>
-                                    <p class="dia-chi-ct">30 Trần Phú, P.Mộ Lao, Hà Đông, Hà Nội</p>
-                                </div>
-                            </div>
+                        <div class="mb-3 ps-5">
+                            <label class="form-label fw-bold text-muted">Số điện thoại người nhận</label>
+                            <input type="text" id="sdt" class="form-control bg-light fs-5 py-2" placeholder="Nhập số điện thoại...">
                         </div>
                     </div>
-                    
-                    <!-- Mục 3: Địa chỉ nhận (Đã sửa từ <p> sang <textarea> để nhập được) -->
-                    <div>
-                        <div class="tieu-de">
-                            <div>
-                                <span>3</span>
-                                <p>Địa chỉ nhận</p>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="dia-chi">
-                                <div id="headlessui-radiogroup-option-13" role="radio" aria-checked="true" tabindex="0">
-                                    <div>
-                                        <p class="loai-dia-chi">Nơi nhận:</p>
-                                        <textarea id="diachi" class="dia-chi-ct-input" rows="3" placeholder="Nhập địa chỉ nhận hàng..."></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                </div>
 
-                    <!-- Mục 4: Thông tin giao hàng (Thêm onclick để chọn được) -->
-                    <div>
-                        <div class="tieu-de">
-                            <div>
-                                <span>4</span>
-                                <p>Thông tin giao hàng</p>
-                            </div>
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <div class="step-header">
+                            <div class="step-circle">2</div>
+                            <h3 class="step-title">Địa chỉ nhận hàng</h3>
                         </div>
-                        <div>
-                            <div class="ds-thoi-gian-giao-hang">
-                                <div class="active" onclick="chonThoiGian(this, '90_phut')">
-                                    <span>Chuyển phát nhanh</span>
-                                    <span>Nhận hàng trong 90 phút</span>
+                        <div class="mb-3 ps-5">
+                            <label class="form-label fw-bold text-muted">Nơi nhận</label>
+                            <textarea id="diachi" class="form-control bg-light fs-5 py-2" rows="3" placeholder="Nhập địa chỉ nhận hàng chi tiết..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-body p-4">
+                        <div class="step-header">
+                            <div class="step-circle">3</div>
+                            <h3 class="step-title">Thời gian giao hàng mong muốn</h3>
+                        </div>
+                        <div class="row g-3 ps-5 ds-thoi-gian-giao-hang">
+                            <div class="col-sm-6">
+                                <div class="card p-3 h-100 delivery-option active" onclick="chonThoiGian(this, '90_phut')">
+                                    <div class="fw-bold text-primary mb-1"><i class="bi bi-lightning-charge me-1"></i>Chuyển phát nhanh</div>
+                                    <div class="text-muted small">Nhận hàng trong 90 phút</div>
                                 </div>
-                                <div onclick="chonThoiGian(this, 'sang')">
-                                    <span>Buổi sáng</span>
-                                    <span>8.00 giờ - 11.00 giờ</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'sang')">
+                                    <div class="fw-bold mb-1"><i class="bi bi-brightness-alt-high me-1"></i>Buổi sáng</div>
+                                    <div class="text-muted small">8:00 - 11:00</div>
                                 </div>
-                                <div onclick="chonThoiGian(this, 'trua')">
-                                    <span>Buổi trưa</span>
-                                    <span>11.00 giờ - 14.00 giờ</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'trua')">
+                                    <div class="fw-bold mb-1"><i class="bi bi-brightness-high me-1"></i>Buổi trưa</div>
+                                    <div class="text-muted small">11:00 - 14:00</div>
                                 </div>
-                                <div onclick="chonThoiGian(this, 'chieu')">
-                                    <span>Buổi chiều</span>
-                                    <span>14.00 giờ - 17.00 giờ</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'chieu')">
+                                    <div class="fw-bold mb-1"><i class="bi bi-sunset me-1"></i>Buổi chiều</div>
+                                    <div class="text-muted small">14:00 - 17:00</div>
                                 </div>
-                                <div onclick="chonThoiGian(this, 'toi')">
-                                    <span>Buổi tối</span>
-                                    <span>17.00 giờ - 20.00 giờ</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="card p-3 h-100 delivery-option" onclick="chonThoiGian(this, 'toi')">
+                                    <div class="fw-bold mb-1"><i class="bi bi-moon-stars me-1"></i>Buổi tối</div>
+                                    <div class="text-muted small">17:00 - 20:00</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Cột thông tin đơn hàng bên phải -->
-                <div class="tt-don-hang">
-                    <div>
-                        <div class="ds-mat-hang">
+            <!-- Cột phải: Đơn hàng & Thanh toán -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm border-0 bg-white sticky-top" style="top: 20px;">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold border-bottom pb-3 mb-3">Tóm tắt đơn hàng</h4>
+                        <div class="ds-mat-hang mb-4">
                             <!-- Danh sách hàng sẽ đổ vào đây từ JS -->
                         </div>
-                        <div class="thanh-tien">
-                            <div>
-                                <p>Tổng tiền hàng</p>
-                                <span id="tongTienHang">0</span>
-                            </div>
-                            <div>
-                                <p>Phí vận chuyển</p>
-                                <span id="phiVanChuyen">0</span>
-                            </div>
+                        
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Tổng tiền hàng</span>
+                            <span class="fw-bold" id="tongTienHang">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                            <span class="text-muted">Phí vận chuyển</span>
+                            <span class="fw-bold" id="phiVanChuyen">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fs-5 fw-bold">Tổng thanh toán</span>
+                            <span class="fs-4 fw-bold text-danger" id="tongTien">0</span>
+                        </div>
 
-                            <div class="tong-don-hang">
-                                <p>Total</p>
-                                <span id="tongTien">0</span>
+                        <h5 class="fw-bold mb-3 mt-4">Phương thức thanh toán</h5>
+                        <div class="row g-2 hinh-thuc-thanh-toan mb-3">
+                            <div class="col-6 payment-option active" onclick="chonPhuongThucThanhToan(this, 'COD')">
+                                <i class="bi bi-cash-stack me-2 fs-5"></i> Nhận hàng
+                            </div>
+                            <div class="col-6 payment-option" onclick="chonPhuongThucThanhToan(this, 'QR')">
+                                <i class="bi bi-qr-code-scan me-2 fs-5"></i> Quét QR
                             </div>
                         </div>
-                        <div class="ds-hinh-thuc-thanh-toan">
-                            <div>
-                                <label>Hình thức thanh toán</label>
-                                <div class="hinh-thuc-thanh-toan">
-                                    <div class="active">
-                                        <span>Thanh toán khi giao hàng</span>
-                                    </div>
-                                </div>
-                            </div>
+
+                        <div id="qrCodeContainer" class="p-3 bg-light rounded text-center mb-4 border" style="display: none;">
+                            <p class="fw-bold text-primary mb-2">Quét mã QR bằng App Ngân hàng</p>
+                            <img id="imgQrCode" src="" alt="Mã QR Thanh Toán" class="img-fluid rounded border p-2 bg-white" style="width: 260px; height: 260px; margin: 0 auto;">
+                            <p class="small text-muted mt-2 mb-0">Nội dung CK: <strong id="noiDungCk" class="text-dark"></strong></p>
                         </div>
-                        <button onclick="makeOrder()" class="nut-dat-hang">Đặt hàng</button>
+
+                        <button onclick="makeOrder()" class="btn btn-primary w-100 py-3 fs-5 fw-bold mt-2 shadow-sm">
+                            <i class="bi bi-check-circle me-2"></i> Xác nhận Đặt hàng
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 <!-- Script xử lý chọn thời gian giao hàng -->
@@ -168,8 +168,7 @@
     window.selectedDeliveryTime = '90_phut';
 
     function chonThoiGian(element, giaTri) {
-        // Xóa class active ở tất cả các ô
-        const options = document.querySelectorAll('.ds-thoi-gian-giao-hang > div');
+        const options = document.querySelectorAll('.delivery-option');
         options.forEach(opt => opt.classList.remove('active'));
         // Thêm active vào ô vừa click
         element.classList.add('active');

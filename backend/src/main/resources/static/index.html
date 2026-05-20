@@ -4,34 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <title>Cửa hàng</title>
-    <link rel="stylesheet" href="css/reset.css">
-    <link rel="stylesheet" href="css/sanpham.css">
-    <link rel="stylesheet" href="css/bocuc.css">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="css/bocuc.css">
+    <link rel="stylesheet" href="css/reset.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/modern.css">
 
 
 <body>
-    <!-- Than -->
-    <div class="than">
-        <!-- Thanh tren -->
-        <div class="tieu-de" include-html="/components/header.html">        
-        </div>
+    <header class="tieu-de shadow-sm" include-html="/components/header.html"></header>
 
-        <div id="phan-trang-1">
-
-        </div>
-
-        <div class="noi_dung ">
-            <div id="ds-san-pham" class="danh_sach_san_pham">
+    <section id="ads-banner" class="ads-banner hidden" aria-label="Quảng cáo sản phẩm">
+        <div class="ads-banner-inner">
+            <button type="button" class="ads-close" onclick="closeAdsBanner()" aria-label="Đóng">&times;</button>
+            <div class="ads-header">
+                <h3>Gợi ý sản phẩm hôm nay</h3>
+                <p>12 sản phẩm ngẫu nhiên đang có trong shop</p>
+            </div>
+            <div class="ads-rail">
+                <button type="button" class="ads-nav ads-prev" onclick="adsPrev()" aria-label="Sản phẩm trước">&#10094;</button>
+                <div id="ads-list" class="ads-list"></div>
+                <button type="button" class="ads-nav ads-next" onclick="adsNext()" aria-label="Sản phẩm sau">&#10095;</button>
             </div>
         </div>
+    </section>
 
-        <div id="phan-trang">
-
+    <div class="container py-4">
+        <div id="phan-trang-1" class="d-flex justify-content-center mb-3"></div>
+        
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5 g-4" id="ds-san-pham">
+            <!-- Products will be rendered here by script.js -->
         </div>
+
+        <div id="phan-trang" class="d-flex justify-content-center mt-4"></div>
     </div>
-    </div>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/service.js"></script>
     <script src="js/script.js"></script>

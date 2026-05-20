@@ -2,6 +2,7 @@ function chuyenTrang(url) {
   window.location.href = url;
 }
 
+var user = null;
 async function load() {
   user = await fetchUser();
   if (user) {
@@ -12,9 +13,13 @@ async function load() {
     if (usernameEl) usernameEl.innerText = user.username;
 
     console.log('user :>> ', user);
+
+    // Nếu đang ở trang chủ, tự động cập nhật giao diện để đồng bộ nút giỏ hàng
+    if (typeof goPage === 'function' && typeof page !== 'undefined') {
+      goPage(page);
+    }
   }
 }
-load();
 
 async function logout(){
   localStorage.removeItem("token");
@@ -29,7 +34,10 @@ function hienThiDanhMuc() {
 
 window.onclick = function (e) {
   if (!e.target.matches(".danhmuc-nut")) {
-    document.getElementById("danhmuc-nd").style.display = "none";
+    const danhmucNd = document.getElementById("danhmuc-nd");
+    if (danhmucNd) {
+      danhmucNd.style.display = "none";
+    }
   }
 };
 
@@ -50,6 +58,10 @@ function includeHTML() {
         if (this.readyState == 4) {
           if (this.status == 200) {
             elmnt.innerHTML = this.responseText;
+            // Tải thông tin cá nhân và giỏ hàng ngay khi vừa nhúng xong header
+            if (file.includes("header.html")) {
+              load();
+            }
           }
           if (this.status == 404) {
             elmnt.innerHTML = "Page not found.";
