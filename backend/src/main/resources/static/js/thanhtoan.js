@@ -88,13 +88,36 @@ function updateQrCode() {
 
 // Hàm thực hiện đặt hàng
 async function makeOrder() {
-  // Lấy dữ liệu mới nhất từ các ô nhập liệu (nếu người dùng có sửa địa chỉ)
+  const sdt = document.getElementById("sdt").value.trim();
+  const diachi = document.getElementById("diachi").value.trim();
+
+  // 1. Kiểm tra giỏ hàng trống
+  if (!window.cartSubtotal || window.cartSubtotal <= 0) {
+    alert("Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt!");
+    window.location.href = "/index.html";
+    return;
+  }
+
+  // 2. Kiểm tra số điện thoại
+  if (!sdt) {
+    alert("Vui lòng nhập số điện thoại để chúng tôi liên hệ giao hàng!");
+    document.getElementById("sdt").focus();
+    return;
+  }
+
+  // 3. Kiểm tra địa chỉ
+  if (!diachi) {
+    alert("Vui lòng cung cấp địa chỉ nhận hàng!");
+    document.getElementById("diachi").focus();
+    return;
+  }
+
   const orderData = {
-    phone: document.getElementById("sdt").value,
-    address: document.getElementById("diachi").value,
-      total: totalAmount, 
-    deliveryTime: window.selectedDeliveryTime || '90_phut', // Gửi thêm thời gian giao hàng
-    paymentMethod: selectedPaymentMethod // Gửi thêm thông tin chọn phương thức
+    phone: sdt,
+    address: diachi,
+    total: totalAmount,
+    deliveryTime: window.selectedDeliveryTime || 'thuong',
+    paymentMethod: selectedPaymentMethod
   };
 
   const res = await createOrderService(orderData); // Truyền dữ liệu nếu service hỗ trợ
