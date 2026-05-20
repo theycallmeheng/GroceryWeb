@@ -16,7 +16,10 @@
     <div class="than">
         <div class="noi_dung">
             <div class="than don-hang">
-                <div class="trangthai" id="trangThaiDonHang">Trạng thái: Đã xác nhận</div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="trangthai mb-0" id="trangThaiDonHang">Trạng thái: Đang tải...</div>
+                    <button id="btnHuyDon" onclick="huyDonHang()" class="btn btn-outline-danger btn-sm" style="display: none;">Hủy đơn hàng</button>
+                </div>
                 <div>
                     <a href="index.html" class="quaylai">Quay về trang chủ</a>
                 </div>
@@ -119,34 +122,62 @@
        let order = await getOrderByIdService(c)
        console.log("Order", order)
 
-        let statusName = 'Chờ xác nhận';
+        // Xử lý hiển thị trạng thái
+        let statusName = 'Không xác định';
+        let statusId = 0;
         if (order.status) {
             if (typeof order.status === 'object') {
                 statusName = order.status.name || 'Chờ xác nhận';
+                statusId = order.status.id;
             } else {
-                const s = statuses.find(x => x.id === parseInt(order.status));
+                statusId = parseInt(order.status);
+                const s = statuses.find(x => x.id === statusId);
                 statusName = s ? s.name : order.status;
             }
         }
         document.getElementById("trangThaiDonHang").innerHTML = `Trạng thái: ${statusName}`;
 
+        // Hiển thị nút hủy nếu đơn hàng đang ở trạng thái "Chờ xác nhận" (ID = 1)
+        if (statusId === 1) {
+            document.getElementById("btnHuyDon").style.display = "block";
+        } else {
+            document.getElementById("btnHuyDon").style.display = "none";
+        }
+
         document.getElementById("orderId").innerHTML = order.id;
+        
+        // Tính toán tổng tiền hàng thực tế từ danh sách sản phẩm
+        let totalHang = 0;
+        document.getElementById("danhsachmathang").innerHTML = `
+            <tr>
+                <th>Tên sản phẩm</th>
+                <th>Số lượng</th>
+                <th>Giá</th>
+                <th>Tổng</th>
+            </tr>`;
+            
         order.orderItems.forEach(item => {
-            console.log(item)
+            const itemTotal = item.quantity * item.price;
+            totalHang += itemTotal;
             document.getElementById("danhsachmathang").innerHTML += `
             <tr>
                 <td>${item.product.name}</td>
                 <td>${item.quantity}</td>
                 <td>${numberToVnd(item.price)}</td>
-                <td>${numberToVnd(item.quantity* item.price)}</td>
+                <td>${numberToVnd(itemTotal)}</td>
             </tr>
             `
         });
 
-        document.getElementById("tongTienHang").innerHTML = numberToVnd(order.total );
-        document.getElementById("phiVanChuyen").innerHTML = numberToVnd(15000);
-        document.getElementById("tongTien").innerHTML = numberToVnd(order.total+15000);
-        document.getElementById("tongTienH").innerHTML = numberToVnd(order.total+15000);
+        // LOGIC QUAN TRỌNG: Phí vận chuyển = Tổng đơn - Tổng tiền hàng
+        let phiVanChuyen = order.total - totalHang;
+        if (phiVanChuyen < 0) phiVanChuyen = 0; // Tránh lỗi dữ liệu
+
+        document.getElementById("tongTienHang").innerHTML = numberToVnd(totalHang);
+        document.getElementById("phiVanChuyen").innerHTML = numberToVnd(phiVanChuyen);
+        document.getElementById("tongTien").innerHTML = numberToVnd(order.total);
+        document.getElementById("tongTienH").innerHTML = numberToVnd(order.total);
+        
         document.getElementById("ngayMua").innerHTML = new Date(order.createdAt).toLocaleDateString();
         document.getElementById("tongMatHang").innerHTML = order.orderItems.length;
 
@@ -154,15 +185,39 @@
         const bankId = "MB"; // Mã ngân hàng (VD: MB, VCB, TCB,...)
         const accountNo = "0123456789"; // Số tài khoản ngân hàng
         const accountName = "NGUYEN VAN A"; // Tên chủ tài khoản (viết hoa không dấu)
-        const amount = order.total + 15000; // Tổng tiền thanh toán (bao gồm phí vận chuyển)
+        const amount = order.total; // Sử dụng trực tiếp tổng tiền từ DB
         const addInfo = "Thanh toan don hang " + order.id; // Nội dung chuyển khoản
         
-        const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(accountName)}`;
-        document.getElementById("imgQrCode").src = qrUrl;
-        document.getElementById("noiDungCk").innerText = addInfo;
+        // Ẩn mã QR nếu đơn hàng đã hủy (ID = 5) hoặc đã thành công
+        if (statusId === 5 || statusId === 4) {
+            document.getElementById("qrCodeThanhToan").style.display = "none";
+        } else {
+            document.getElementById("qrCodeThanhToan").style.display = "block";
+            const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(addInfo)}&accountName=${encodeURIComponent(accountName)}`;
+            document.getElementById("imgQrCode").src = qrUrl;
+            document.getElementById("noiDungCk").innerText = addInfo;
+        }
    }
-   getOrder();
-    
-</script>
 
+   async function huyDonHang() {
+       if (!confirm("Bạn có chắc chắn muốn hủy đơn hàng này không?")) return;
+       const id = document.getElementById("orderId").innerHTML;
+       try {
+           // Gọi API cancel đã có trong OrderService (Backend)
+           const res = await fetch(`${API_URL}/api/orders/${id}/cancel`, {
+               method: 'POST',
+               headers: { ...defaultHeader }
+           });
+           if (res.ok) {
+               alert("Đã gửi yêu cầu hủy đơn hàng thành công!");
+               getOrder(); // Tải lại dữ liệu
+           } else {
+               const error = await res.text();
+               alert("Lỗi: " + error);
+           }
+       } catch (e) { alert("Lỗi kết nối server!"); }
+   }
+
+   getOrder();
+</script>
 </html>
