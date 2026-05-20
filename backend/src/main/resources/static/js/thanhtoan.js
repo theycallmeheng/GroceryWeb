@@ -12,7 +12,7 @@ function matHang(c) {
         <span class="font-bold">${numberToVnd(c?.quantity * c?.product?.price)}</span>
     </div>
     `;
-}
+} 
 
 let totalAmount = 0; // Biến lưu tổng tiền để gửi khi đặt hàng
 let selectedPaymentMethod = 'COD'; // Mặc định là thanh toán khi nhận hàng
