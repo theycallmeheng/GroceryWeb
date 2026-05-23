@@ -94,7 +94,7 @@ async function makeOrder() {
   // 1. Kiểm tra giỏ hàng trống
   if (!window.cartSubtotal || window.cartSubtotal <= 0) {
     alert("Giỏ hàng của bạn đang trống. Vui lòng thêm sản phẩm vào giỏ hàng trước khi đặt!");
-    window.location.href = "/index.html";
+    window.location.href = "/";
     return;
   }
 
@@ -124,7 +124,7 @@ async function makeOrder() {
   console.log(res);
   
   if (res && res.id) {
-    window.location.href = "/dathangthanhcong.html";
+    window.location.href = "/dathangthanhcong";
   } else {
     alert("Có lỗi xảy ra khi đặt hàng!");
   }
