@@ -1,3 +1,8 @@
+// Kiểm tra đăng nhập: Nếu chưa có token và không phải đang ở trang đăng nhập thì chuyển hướng ngay
+if (!localStorage.getItem("token") && !window.location.pathname.includes("dangnhap")) {
+  window.location.href = "/dangnhap";
+}
+
 function chuyenTrang(url) {
   window.location.href = url;
 }
