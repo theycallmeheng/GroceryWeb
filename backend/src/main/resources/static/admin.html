@@ -91,7 +91,7 @@
                         <table class="table table-hover table-striped align-middle mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>Mã ĐH</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Shipper</th><th>Hành động</th>
+                                    <th>Mã ĐH</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>TT thanh toán</th><th>Shipper</th><th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody id="ordersTableBody"></tbody>
@@ -202,11 +202,18 @@
                 </div>
                 <div class="modal-body">
                     <div id="orderDetailContent" class="mb-4"></div>
-                    <div class="p-3 bg-light rounded border">
+                    <div class="p-3 bg-light rounded border mb-3">
                         <label class="form-label fw-bold">Cập nhật trạng thái đơn hàng:</label>
                         <div class="input-group">
                             <select id="modalStatusSelect" class="form-select"></select>
                             <button onclick="submitUpdateStatus()" class="btn btn-primary">Cập nhật</button>
+                        </div>
+                    </div>
+                    <div class="p-3 bg-light rounded border">
+                        <label class="form-label fw-bold">Cập nhật trạng thái thanh toán:</label>
+                        <div class="input-group">
+                            <select id="modalPaymentStatusSelect" class="form-select"></select>
+                            <button onclick="submitUpdatePaymentStatus()" class="btn btn-primary">Cập nhật</button>
                         </div>
                     </div>
                 </div>

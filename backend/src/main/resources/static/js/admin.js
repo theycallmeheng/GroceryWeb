@@ -143,12 +143,15 @@ function loadView(viewId, token) {
                 // Lấy tên trạng thái, có fallback
                 const statusName = statusObj ? statusObj.name : 'Trạng thái không xác định';
 
+                const paymentStatusName = order.paymentStatus || 'Chờ xác nhận';
+
                 tbody.innerHTML += `
                     <tr>
                         <td>${order.id}</td>
                         <td>${customerName}</td>
                         <td>${order.total}</td>
                         <td>${statusName}</td>
+                        <td>${paymentStatusName}</td>
                         <td>${order.shipper ? order.shipper.name : '<span style="color:red">Chưa phân công</span>'}</td>
                         <td>
                             <button class="btn-info" onclick="viewOrderDetails(${order.id})" style="padding: 5px; cursor: pointer;">Chi tiết</button>
@@ -584,11 +587,16 @@ function viewOrderDetails(orderId) {
     .then(res => res.json())
     .then(order => {
         // Render nội dung chi tiết
+        const paymentMethodName = order.paymentMethod || 'N/A';
+        const paymentStatusName = order.paymentStatus || 'Chờ xác nhận';
+
         let content = `
             <p><strong>Khách hàng:</strong> ${order.users ? order.users.username : 'N/A'}</p>
             <p><strong>Số điện thoại:</strong> ${order.users && order.users.phone ? order.users.phone : 'N/A'}</p>
             <p><strong>Địa chỉ giao:</strong> ${order.address || (order.users && order.users.address ? order.users.address : 'N/A')}</p>
             <p><strong>Tổng tiền:</strong> ${order.total} VNĐ</p>
+            <p><strong>Phương thức thanh toán:</strong> ${paymentMethodName}</p>
+            <p><strong>Trạng thái thanh toán:</strong> ${paymentStatusName}</p>
             <p><strong>Shipper phụ trách:</strong> ${order.shipper ? order.shipper.name + ' (' + order.shipper.phone + ')' : 'Chưa có'}</p>
             <h4>Danh sách sản phẩm:</h4>
             <table class="admin-table" style="width: 100%; margin-top: 10px;">
@@ -630,6 +638,7 @@ function viewOrderDetails(orderId) {
         ];
 
         const select = document.getElementById('modalStatusSelect');
+        const paymentSelect = document.getElementById('modalPaymentStatusSelect');
         
         let currentStatusId = 1;
         if (order.status) {
@@ -646,6 +655,19 @@ function viewOrderDetails(orderId) {
             optionsHtml += `<option value="${s.id}" ${isSelected}>${s.name}</option>`;
         });
         select.innerHTML = optionsHtml;
+
+        const paymentStatuses = [
+            'Chờ xác nhận',
+            'Chưa thanh toán',
+            'Đã thanh toán'
+        ];
+        const currentPaymentStatus = order.paymentStatus || 'Chờ xác nhận';
+        let paymentOptionsHtml = '';
+        paymentStatuses.forEach(ps => {
+            const isSelected = (currentPaymentStatus === ps) ? 'selected' : '';
+            paymentOptionsHtml += `<option value="${ps}" ${isSelected}>${ps}</option>`;
+        });
+        paymentSelect.innerHTML = paymentOptionsHtml;
         
         // Khóa chức năng cập nhật nếu đơn hàng đã hủy hoặc đã giao thành công
         const updateBtn = document.querySelector('#orderDetailModal button[onclick="submitUpdateStatus()"]');
@@ -691,6 +713,35 @@ function submitUpdateStatus() {
                 errMsg = errObj.message || errObj.error || errMsg;
             } catch(e) {}
             alert('Lỗi khi cập nhật trạng thái: ' + errMsg);
+        }
+    });
+}
+
+function submitUpdatePaymentStatus() {
+    const orderId = document.getElementById('detailOrderId').innerText;
+    const paymentStatus = document.getElementById('modalPaymentStatusSelect').value;
+    const token = localStorage.getItem('token');
+
+    fetch(`http://localhost:8081/api/orders/${orderId}/payment-status`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ paymentStatus: paymentStatus })
+    })
+    .then(async res => {
+        if (res.ok) {
+            alert('Cập nhật trạng thái thanh toán thành công!');
+            closeOrderDetailModal();
+            loadView('ordersView', token);
+        } else {
+            let errMsg = await res.text();
+            try {
+                const errObj = JSON.parse(errMsg);
+                errMsg = errObj.message || errObj.error || errMsg;
+            } catch(e) {}
+            alert('Lỗi khi cập nhật trạng thái thanh toán: ' + errMsg);
         }
     });
 }

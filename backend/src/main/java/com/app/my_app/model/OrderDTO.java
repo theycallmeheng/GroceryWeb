@@ -17,6 +17,12 @@ public class OrderDTO {
     @Size(max = 255)
     private String address;
 
+    @Size(max = 255)
+    private String paymentMethod;
+
+    @Size(max = 255)
+    private String paymentStatus;
+
     private Long status;
 
     private Long users;

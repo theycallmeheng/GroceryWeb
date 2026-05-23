@@ -15,7 +15,7 @@ function matHang(c) {
 } 
 
 let totalAmount = 0; // Biến lưu tổng tiền để gửi khi đặt hàng
-let selectedPaymentMethod = 'COD'; // Mặc định là thanh toán khi nhận hàng
+let selectedPaymentMethod = 'Tiền mặt'; // Mặc định là thanh toán khi nhận hàng
 window.cartSubtotal = 0; // Lưu tiền hàng riêng để tính toán linh hoạt
 
 // Hàm tải giỏ hàng và tính tổng tiền

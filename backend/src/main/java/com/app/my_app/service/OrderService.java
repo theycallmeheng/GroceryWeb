@@ -27,6 +27,10 @@ import javax.transaction.Transactional;
 @Service
 public class OrderService {
 
+    private static final String PAYMENT_STATUS_PENDING = "Chờ xác nhận";
+    private static final String PAYMENT_STATUS_UNPAID = "Chưa thanh toán";
+    private static final String PAYMENT_STATUS_PAID = "Đã thanh toán";
+
     private final OrderRepository orderRepository;
     private final OrderStatusRepository orderStatusRepository;
     private final UserRepository userRepository;
@@ -70,6 +74,14 @@ public class OrderService {
     public Long create(final OrderDTO orderDTO) {
         final Order order = new Order();
         mapToEntity(orderDTO, order);
+        if (order.getPaymentMethod() == null || order.getPaymentMethod().isEmpty() || !"QR".equalsIgnoreCase(order.getPaymentMethod())) {
+            order.setPaymentMethod("Tiền mặt");
+        } else {
+            order.setPaymentMethod("QR");
+        }
+        if (order.getPaymentStatus() == null || order.getPaymentStatus().isEmpty()) {
+            order.setPaymentStatus(PAYMENT_STATUS_PENDING);
+        }
         return orderRepository.save(order).getId();
     }
 
@@ -95,6 +107,13 @@ public class OrderService {
         } else {
             order.setPhone(authService.getCurrentUser().getPhone());
         }
+        if (orderData != null && orderData.getPaymentMethod() != null && !orderData.getPaymentMethod().isEmpty()
+                && "QR".equalsIgnoreCase(orderData.getPaymentMethod())) {
+            order.setPaymentMethod("QR");
+        } else {
+            order.setPaymentMethod("Tiền mặt");
+        }
+        order.setPaymentStatus(PAYMENT_STATUS_PENDING);
         order.setUsers(authService.getCurrentUser());
         Long totalPrice = 0L;
         order.setTotal(totalPrice);
@@ -155,6 +174,20 @@ public class OrderService {
         final Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         mapToEntity(orderDTO, order);
+        orderRepository.save(order);
+    }
+
+    @Transactional
+    public void updatePaymentStatus(final Long id, final String paymentStatus) {
+        if (paymentStatus == null || paymentStatus.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "paymentStatus is required");
+        }
+        if (!isValidPaymentStatus(paymentStatus)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Trạng thái thanh toán không hợp lệ");
+        }
+        final Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn hàng"));
+        order.setPaymentStatus(paymentStatus);
         orderRepository.save(order);
     }
 
@@ -299,5 +332,11 @@ public class OrderService {
         if (sellingPrice >= 30000) return sellingPrice - 10000;
         if (sellingPrice >= 10000) return sellingPrice - 5000;
         return sellingPrice - 3000;
+    }
+
+    private boolean isValidPaymentStatus(final String paymentStatus) {
+        return PAYMENT_STATUS_PENDING.equals(paymentStatus)
+                || PAYMENT_STATUS_UNPAID.equals(paymentStatus)
+                || PAYMENT_STATUS_PAID.equals(paymentStatus);
     }
 }

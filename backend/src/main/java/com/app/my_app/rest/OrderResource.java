@@ -50,6 +50,7 @@ public class OrderResource {
         private String address;
         private Double total;
         private String deliveryTime;
+        private String paymentMethod;
 
         public String getPhone() { return phone; }
         public void setPhone(String phone) { this.phone = phone; }
@@ -59,6 +60,8 @@ public class OrderResource {
         public void setTotal(Double total) { this.total = total; }
         public String getDeliveryTime() { return deliveryTime; }
         public void setDeliveryTime(String deliveryTime) { this.deliveryTime = deliveryTime; }
+        public String getPaymentMethod() { return paymentMethod; }
+        public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     }
 
     @PostMapping("/create")
@@ -73,10 +76,23 @@ public class OrderResource {
         public void setStatusId(Long statusId) { this.statusId = statusId; }
     }
 
+    public static class PaymentStatusRequestDTO {
+        private String paymentStatus;
+        public String getPaymentStatus() { return paymentStatus; }
+        public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+    }
+
     @PutMapping("/{id}/status")
     public ResponseEntity<Void> updateOrderStatus(@PathVariable final Long id,
             @RequestBody StatusRequestDTO payload) {
         orderService.updateStatus(id, payload.getStatusId());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{id}/payment-status")
+    public ResponseEntity<Void> updatePaymentStatus(@PathVariable final Long id,
+            @RequestBody PaymentStatusRequestDTO payload) {
+        orderService.updatePaymentStatus(id, payload.getPaymentStatus());
         return ResponseEntity.ok().build();
     }
 

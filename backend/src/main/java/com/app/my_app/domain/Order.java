@@ -44,6 +44,12 @@ public class Order {
     @Column
     private String phone;
 
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+    @Column(name = "payment_status")
+    private String paymentStatus;
+
     @ManyToOne
     @JoinColumn(name = "status_id")
     private OrderStatus status;
