@@ -53,8 +53,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/authenticate", "/register", "/dangnhap.html",
                     "/*.html",
                     "/components/**",
-                        "/swagger-ui/**", "/v3/**", "/swagger-resources/**",
-                        "/", "/js/**", "/css/**", "/img/**", "/demo/**", "/api/auth/**")
+                    "/swagger-ui/**", "/v3/**", "/swagger-resources/**",
+                    "/", "/favicon.ico", "/js/**", "/css/**", "/img/**", "/demo/**", "/api/auth/**")
                 .permitAll()
                 .anyRequest().authenticated()
                 .and()

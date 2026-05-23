@@ -88,9 +88,11 @@ function loadView(viewId, token) {
 
     if (viewId === 'dashboardView') {
         fetchAdminData('/api/admin/dashboard', headers, (data) => {
-            document.getElementById('msg').innerText = data.message;
-            document.getElementById('totalUsers').innerText = data.totalUsers;
-            document.getElementById('totalOrders').innerText = data.totalOrders;
+            const totalUsers = Number.isFinite(data.totalUsers) ? data.totalUsers : Number(data.totalUsers || 0);
+            const totalOrders = Number.isFinite(data.totalOrders) ? data.totalOrders : Number(data.totalOrders || 0);
+            document.getElementById('msg').innerText = data.message || 'Chào mừng Admin!';
+            document.getElementById('totalUsers').innerText = Number.isNaN(totalUsers) ? 0 : totalUsers;
+            document.getElementById('totalOrders').innerText = Number.isNaN(totalOrders) ? 0 : totalOrders;
             document.getElementById('dashboardView').style.display = 'block';
         });
     } else if (viewId === 'usersView') {
