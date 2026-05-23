@@ -124,7 +124,7 @@ async function makeOrder() {
   console.log(res);
   
   if (res && res.id) {
-    window.location.href = "/donhang?id=" + res.id;
+    window.location.href = "/dathangthanhcong.html";
   } else {
     alert("Có lỗi xảy ra khi đặt hàng!");
   }
