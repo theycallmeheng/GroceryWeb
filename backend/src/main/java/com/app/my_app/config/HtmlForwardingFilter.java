@@ -21,7 +21,7 @@ public class HtmlForwardingFilter implements Filter {
     // Danh sách các đường dẫn giao diện đã bỏ đuôi .html
     private static final List<String> HTML_ROUTES = Arrays.asList(
             "/dangnhap", "/admin", "/orders", "/donhang", 
-            "/giohang", "/thanhtoan", "/thongtincanhan", "/lienhe"
+            "/giohang", "/thanhtoan", "/thongtincanhan", "/lienhe", "/dathangthanhcong"
     );
 
     @Override
