@@ -88,10 +88,12 @@
     const statusObj = statuses.find(s => s.id === parseInt(statusId));
     const statusName = statusObj ? statusObj.name : 'Chờ xác nhận';
 
-    // Nút hủy đơn hàng: Chỉ hiển thị khi trạng thái là "Chờ xác nhận" (id = 1)
+    // Nút hủy đơn hàng: Hiển thị nhưng vô hiệu hóa khi trạng thái không phải là "Chờ xác nhận"
     let cancelBtnHtml = '';
     if (parseInt(statusId) === 1) {
-        cancelBtnHtml = `<button onclick="cancelMyOrder(${order.id})" class="btn btn-sm btn-outline-danger ms-2"><i class="bi bi-x-circle me-1"></i>Hủy</button>`;
+        cancelBtnHtml = `<button onclick="cancelMyOrder(${order.id})" class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center text-nowrap" style="width: 85px;"><i class="bi bi-x-circle me-1"></i>Hủy</button>`;
+    } else {
+        cancelBtnHtml = `<button disabled class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center text-nowrap" style="width: 85px;"><i class="bi bi-x-circle me-1"></i>Hủy</button>`;
     }
 
     dsOrder.innerHTML += `
@@ -103,8 +105,10 @@
               <td class="text-primary fw-bold">${order.total.toLocaleString()} đ</td>           
               <td><span class="badge ${parseInt(statusId) === 1 ? 'bg-warning text-dark' : parseInt(statusId) === 4 ? 'bg-success' : parseInt(statusId) === 5 ? 'bg-danger' : 'bg-info'}">${statusName}</span></td>           
               <td class="text-end">
-                <button onclick="viewOrderDetail(${order.id})" class="btn btn-sm btn-primary"><i class="bi bi-eye me-1"></i>Xem</button>
-                ${cancelBtnHtml}
+                <div class="d-flex gap-2 justify-content-end">
+                  <button onclick="viewOrderDetail(${order.id})" class="btn btn-sm btn-primary d-flex align-items-center justify-content-center text-nowrap" style="width: 85px;"><i class="bi bi-eye me-1"></i>Xem</button>
+                  ${cancelBtnHtml}
+                </div>
               </td>
             </tr>    
     `
@@ -163,12 +167,16 @@
 
             let orderPhone = order.phone || (order.users && order.users.phone) || 'N/A';
             let orderAddress = order.address || (order.users && order.users.address) || 'N/A';
+            let paymentMethod = order.paymentMethod || 'N/A';
+            let paymentStatus = order.paymentStatus || 'Chờ xác nhận';
 
             let content = `
                 <div class="row mb-4 g-3">
                     <div class="col-md-6"><p class="mb-1 text-muted">Ngày đặt:</p><p class="fw-bold">${new Date(order.createdAt).toLocaleString() || 'N/A'}</p></div>
                     <div class="col-md-6"><p class="mb-1 text-muted">Số điện thoại:</p><p class="fw-bold">${orderPhone}</p></div>
                     <div class="col-md-12"><p class="mb-1 text-muted">Địa chỉ giao:</p><p class="fw-bold">${orderAddress}</p></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Phương thức TT:</p><p class="fw-bold">${paymentMethod}</p></div>
+                    <div class="col-md-6"><p class="mb-1 text-muted">Trạng thái TT:</p><p class="fw-bold text-success">${paymentStatus}</p></div>
                     <div class="col-md-6"><p class="mb-1 text-muted">Trạng thái:</p><span class="badge bg-info fs-6">${statusName}</span></div>
                     <div class="col-md-6"><p class="mb-1 text-muted">Shipper:</p><p class="fw-bold">${order.shipper ? order.shipper.name + ' - ' + order.shipper.phone : 'Chưa phân công'}</p></div>
                 </div>

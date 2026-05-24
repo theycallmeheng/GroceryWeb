@@ -136,11 +136,15 @@
         }
         document.getElementById("trangThaiDonHang").innerHTML = `Trạng thái: ${statusName}`;
 
-        // Hiển thị nút hủy nếu đơn hàng đang ở trạng thái "Chờ xác nhận" (ID = 1)
+        // Hiển thị nút hủy nhưng vô hiệu hóa nếu trạng thái không phải "Chờ xác nhận" (ID = 1)
+        const btnHuyDon = document.getElementById("btnHuyDon");
+        btnHuyDon.style.display = "block";
         if (statusId === 1) {
-            document.getElementById("btnHuyDon").style.display = "block";
+            btnHuyDon.disabled = false;
+            btnHuyDon.className = "btn btn-outline-danger btn-sm";
         } else {
-            document.getElementById("btnHuyDon").style.display = "none";
+            btnHuyDon.disabled = true;
+            btnHuyDon.className = "btn btn-outline-secondary btn-sm";
         }
 
         document.getElementById("orderId").innerHTML = order.id;
