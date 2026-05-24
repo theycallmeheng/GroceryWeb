@@ -390,6 +390,7 @@ function openAddUserModal() {
     document.getElementById('userEmail').disabled = false; // Cho phép sửa khi thêm mới
     document.getElementById('userPassword').value = '';
     document.getElementById('userPasswordGroup').style.display = 'block';
+    document.getElementById('userPassword').placeholder = 'Nhập mật khẩu';
     document.getElementById('userLastname').value = '';
     document.getElementById('userFirstname').value = '';
     document.getElementById('userPhone').value = '';
@@ -413,7 +414,9 @@ function openEditUserModal(id) {
             document.getElementById('userUsername').disabled = true; // Không cho sửa username
             document.getElementById('userEmail').value = u.email || '';
             document.getElementById('userEmail').disabled = true; // Không cho sửa email
-            document.getElementById('userPasswordGroup').style.display = 'none'; // Không cho đổi mk ở form này
+            document.getElementById('userPasswordGroup').style.display = 'block';
+            document.getElementById('userPassword').value = '';
+            document.getElementById('userPassword').placeholder = 'Nhập mật khẩu mới (để trống nếu không đổi)';
             document.getElementById('userLastname').value = u.lastname || '';
             document.getElementById('userFirstname').value = u.firstname || '';
             document.getElementById('userPhone').value = u.phone || '';
@@ -431,12 +434,16 @@ function saveUser() {
     const data = {
         username: document.getElementById('userUsername').value,
         email: document.getElementById('userEmail').value,
-        password: document.getElementById('userPassword').value,
         lastname: document.getElementById('userLastname').value,
         firstname: document.getElementById('userFirstname').value,
         phone: document.getElementById('userPhone').value,
         role: document.getElementById('userRole').value
     };
+
+    const password = document.getElementById('userPassword').value;
+    if (password && password.trim() !== '') {
+        data.password = password;
+    }
 
     const token = localStorage.getItem('token');
     const url = currentUserId ? `http://localhost:8081/api/admin/users/${currentUserId}` : `http://localhost:8081/api/admin/users`;

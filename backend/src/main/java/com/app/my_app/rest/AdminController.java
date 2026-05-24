@@ -13,6 +13,7 @@ import com.app.my_app.repos.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -46,6 +47,9 @@ public class AdminController {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @GetMapping("/dashboard")
     public ResponseEntity<Map<String, Object>> getDashboardData() {
         Map<String, Object> data = new HashMap<>();
@@ -68,8 +72,13 @@ public class AdminController {
         if (user.getEmail() != null && userRepository.existsByEmail(user.getEmail())) {
             return ResponseEntity.badRequest().body("Email đã tồn tại!");
         }
+        if (user.getPhone() != null && !user.getPhone().isEmpty() && userRepository.existsByPhone(user.getPhone())) {
+            return ResponseEntity.badRequest().body("Số điện thoại đã tồn tại!");
+        }
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
-            user.setPassword("123456"); // Mật khẩu mặc định nếu không nhập
+            user.setPassword(passwordEncoder.encode("123456")); // Mật khẩu mặc định nếu không nhập
+        } else if (!isEncoded(user.getPassword())) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         if (user.getRole() == null || user.getRole().isEmpty()) {
             user.setRole("ROLE_USER");
@@ -88,13 +97,41 @@ public class AdminController {
         if (user == null) {
             return ResponseEntity.notFound().build();
         }
+        if (userDetails.getUsername() != null && !userDetails.getUsername().equals(user.getUsername())
+                && userRepository.existsByUsername(userDetails.getUsername())) {
+            return ResponseEntity.badRequest().body("Username đã tồn tại!");
+        }
+        if (userDetails.getEmail() != null && !userDetails.getEmail().equals(user.getEmail())
+                && userRepository.existsByEmail(userDetails.getEmail())) {
+            return ResponseEntity.badRequest().body("Email đã tồn tại!");
+        }
+        if (userDetails.getPhone() != null && !userDetails.getPhone().isEmpty()
+                && !userDetails.getPhone().equals(user.getPhone())
+                && userRepository.existsByPhone(userDetails.getPhone())) {
+            return ResponseEntity.badRequest().body("Số điện thoại đã tồn tại!");
+        }
+
+        if (userDetails.getUsername() != null) user.setUsername(userDetails.getUsername());
+        if (userDetails.getEmail() != null) user.setEmail(userDetails.getEmail());
         user.setFirstname(userDetails.getFirstname());
         user.setLastname(userDetails.getLastname());
         user.setPhone(userDetails.getPhone());
         user.setAddress(userDetails.getAddress());
         user.setRole(userDetails.getRole());
+
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+            if (!isEncoded(userDetails.getPassword())) {
+                user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+            } else {
+                user.setPassword(userDetails.getPassword());
+            }
+        }
         
         return ResponseEntity.ok(userRepository.save(user));
+    }
+
+    private boolean isEncoded(final String password) {
+        return password.startsWith("$2a$") || password.startsWith("$2b$") || password.startsWith("$2y$");
     }
 
     @DeleteMapping("/users/{id}")
