@@ -72,7 +72,7 @@ public class CartItemService {
     public CartItem create(final CartItemDTO cartItemDTO) {
         CartItem cartItem = cartItemRepository.findCartItemByProductIdAndUserId(cartItemDTO.getProductId(), authService.getCurrentUserId());
         if (cartItem != null) {
-            cartItem.setQuantity(cartItem.getQuantity() + 1);
+            cartItem.setQuantity(cartItem.getQuantity() + cartItemDTO.getQuantity());
         } else {
             cartItem = new CartItem();
             cartItem.setQuantity(cartItemDTO.getQuantity());

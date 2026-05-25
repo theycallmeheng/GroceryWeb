@@ -9,6 +9,8 @@ import com.app.my_app.repos.ProductRepository;
 import com.app.my_app.repos.UserRepository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -268,6 +270,7 @@ public class OrderService {
             else if (statusId.equals(3L)) status.setName("Đang giao hàng");
             else if (statusId.equals(4L)) status.setName("Giao thành công");
             else if (statusId.equals(5L)) status.setName("Đã hủy");
+            else if (statusId.equals(6L)) status.setName("Yêu cầu hủy");
             else status.setName("Trạng thái " + statusId);
             
             try {
@@ -293,13 +296,17 @@ public class OrderService {
 
         Long oldStatusId = order.getStatus() != null ? order.getStatus().getId() : null;
         
-        // Chỉ cho phép hủy nếu trạng thái đang là "Chờ xác nhận" (ID = 1L)
-        if (oldStatusId == null || !oldStatusId.equals(1L)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ có thể hủy đơn hàng khi chưa được Admin xác nhận (Trạng thái: Chờ xác nhận)!");
+        // Cho phép hủy trực tiếp nếu đang Chờ xác nhận (1).
+        // Gửi yêu cầu hủy nếu Đang chuẩn bị hàng (2) hoặc Đang giao hàng (3).
+        if (oldStatusId == null || oldStatusId.equals(4L) || oldStatusId.equals(5L) || oldStatusId.equals(6L)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể hủy đơn hàng ở trạng thái này!");
         }
 
-        // Gọi lại hàm updateStatus để cập nhật trạng thái là 5 (Đã hủy) và tự động hoàn trả số lượng vào tồn kho
-        updateStatus(id, 5L);
+        if (oldStatusId.equals(1L)) {
+            updateStatus(id, 5L); // Hủy trực tiếp (Thành "Đã hủy")
+        } else {
+            updateStatus(id, 6L); // Gửi yêu cầu hủy
+        }
     }
 
     public void delete(final Long id) {
@@ -320,6 +327,51 @@ public class OrderService {
             order.setUsers(users);
         }
         return order;
+    }
+
+    public Map<String, Object> getRevenueStats() {
+        List<Order> orders = orderRepository.findAll();
+        long totalRevenue = 0;
+        long totalProfit = 0;
+        Map<Long, Map<String, Object>> productStatsMap = new HashMap<>();
+
+        for (Order order : orders) {
+            if (order.getStatus() != null && order.getStatus().getId().equals(4L)) {
+                if (order.getOrderItems() != null) {
+                    for (OrderItem item : order.getOrderItems()) {
+                        long itemPrice = item.getPrice() != null ? item.getPrice() : (item.getProduct() != null && item.getProduct().getPrice() != null ? item.getProduct().getPrice() : 0L);
+                        long qty = item.getQuantity() != null ? item.getQuantity() : 0L;
+                        long rev = itemPrice * qty;
+                        long importPrice = calculateImportPrice(itemPrice);
+                        long prof = (itemPrice - importPrice) * qty;
+
+                        totalRevenue += rev;
+                        totalProfit += prof;
+
+                        Long productId = item.getProduct() != null ? item.getProduct().getId() : (item.getName() != null ? (long) item.getName().hashCode() : 0L);
+                        String productName = item.getProduct() != null ? item.getProduct().getName() : (item.getName() != null ? item.getName() : "Unknown");
+
+                        Map<String, Object> stat = productStatsMap.getOrDefault(productId, new HashMap<>());
+                        stat.put("id", productId);
+                        stat.put("name", productName);
+                        stat.put("sellPrice", itemPrice);
+                        stat.put("importPrice", importPrice);
+                        stat.put("quantity", ((Number) stat.getOrDefault("quantity", 0L)).longValue() + qty);
+                        stat.put("totalRev", ((Number) stat.getOrDefault("totalRev", 0L)).longValue() + rev);
+                        stat.put("totalProf", ((Number) stat.getOrDefault("totalProf", 0L)).longValue() + prof);
+                        productStatsMap.put(productId, stat);
+                    }
+                }
+            }
+        }
+        List<Map<String, Object>> productStatsList = new ArrayList<>(productStatsMap.values());
+        productStatsList.sort((a, b) -> Long.compare(((Number) b.get("quantity")).longValue(), ((Number) a.get("quantity")).longValue()));
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("totalRevenue", totalRevenue);
+        result.put("totalProfit", totalProfit);
+        result.put("productStats", productStatsList);
+        return result;
     }
 
     private Long calculateImportPrice(Long sellingPrice) {
