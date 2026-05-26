@@ -15,7 +15,7 @@ Phần 2: Thiết lập Cơ sở dữ liệu (Database)
   
 - Tạm thời bạn chưa cần tạo bảng, vì Spring Boot (thông qua Hibernate/JPA) sẽ tự động tạo các bảng dựa trên code Entity của bạn khi Backend khởi chạy.
   
-  **Sau khi khởi chạy Backend(StringBoot) để hoàn tất quá trình tạo bảng thì ta execute lần lượt các file seed/taodanhmuc.sql và seed/product.sql vào MySQL Workbench để insert dữ liệu cơ bản vào bảng.**
+  **Sau khi khởi chạy Backend(StringBoot) để hoàn tất quá trình tạo bảng thì ta execute lần lượt các file[ seed/taodanhmuc.sql và seed/product.sql ] vào MySQL Workbench để insert dữ liệu cơ bản vào bảng.**
 
 
 Phần 3: Khởi chạy Backend (Spring Boot)
