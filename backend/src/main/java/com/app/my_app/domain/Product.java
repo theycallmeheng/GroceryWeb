@@ -1,7 +1,7 @@
 package com.app.my_app.domain;
 
 import java.util.Set;
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;

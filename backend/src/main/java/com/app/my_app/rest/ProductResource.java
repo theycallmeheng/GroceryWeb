@@ -5,7 +5,7 @@ import com.app.my_app.model.ProductDTO;
 import com.app.my_app.service.ProductService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

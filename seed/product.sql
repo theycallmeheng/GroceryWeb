@@ -51,7 +51,6 @@ INSERT INTO product (id, name, image, price, quantity, category_id, import_price
 (53, 'Há cảo Thực Phẩm Cầu Tre gói 500g', 'https://cdn-crownx.winmart.vn/images/prod/162428525064210006557-G1-Coy-co-rua-bep-da-nang-SLHS0521.jpg', 58200, 100, 3, 58200 - 20000),
 (54, 'Tôm nõn size 21/25 Miền Hạ Long khay 500g', 'https://cdn-crownx.winmart.vn/images/prod/9555427459102.jpg', 137700, 100, 3, 137700 - 30000),
 (55, 'Thịt cua đồng xay tinh chế Vinacua gói 250g', 'https://cdn-crownx.winmart.vn/images/prod/162427276453310006639-G1-Gao-tom-Gu-Cung-Vinafood1-tyi-3kg.jpg', 72500, 100, 3, 72500 - 20000),
-(130, 'Tran Ha Linh', 'https://media.cognitus.store/wp-content/uploads/2026/04/anh-tran-ha-linh.jpg', 500000, 100, 3, 500000 - 100000),
 
 -- NHÓM 4: TRỨNG VÀ SỮA (category_id = 4)
 (12, 'Sữa tươi nguyên kem tiệt trùng Lemontree Dairy hộ...', 'https://cdn-crownx.winmart.vn/images/prod/162428240833410056267-HOP-Khan-giay-1-lop-Lency-33cm-gui-1kg.jpg', 29900, 994, 4, 29900 - 3000),
