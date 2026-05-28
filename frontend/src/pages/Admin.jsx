@@ -208,6 +208,14 @@ export default function Admin() {
         } catch (err) { alert('Lỗi cập nhật'); }
     };
 
+    const handleQuickActionStatus = async (orderId, statusId) => {
+        try {
+            await axios.put(`http://localhost:8081/api/orders/${orderId}/status?statusId=${statusId}`, { statusId }, getAuthHeaders());
+            alert('Xử lý thành công!');
+            fetchData('orders');
+        } catch (err) { alert('Lỗi cập nhật'); }
+    };
+
     const handleAssignShipper = async (e) => {
         e.preventDefault();
         try {
@@ -347,7 +355,22 @@ export default function Admin() {
                                         <h3 className="mb-4">Quản lý Đơn hàng</h3>
                                         <div className="table-responsive bg-white rounded shadow-sm p-4">
                                             <table className="table table-hover align-middle mb-0"><thead className="table-dark"><tr><th>Mã ĐH</th><th>Khách hàng</th><th>Tổng tiền</th><th>Trạng thái</th><th>Shipper</th><th>Hành động</th></tr></thead>
-                                                <tbody>{orders.map(o => (<tr key={o.id}><td><strong>#{o.id}</strong></td><td>{o.users?.username}</td><td>{o.total?.toLocaleString()} đ</td><td><span className={`badge ${o.status?.id === 1 || o.status === 1 ? 'bg-warning text-dark' : o.status?.id === 4 ? 'bg-success' : o.status?.id === 5 ? 'bg-danger' : o.status?.id === 6 ? 'bg-secondary' : 'bg-info'}`}>{getStatusName(o.status?.id || o.status || 1)}</span></td><td>{o.shipper ? o.shipper.name : <span className="text-danger">Chưa có</span>}</td><td><button className="btn btn-sm btn-primary me-2" onClick={() => { setOrderDetail(o); openModal('order'); }}>Chi tiết</button><button className="btn btn-sm btn-warning" onClick={() => { axios.get('http://localhost:8081/api/admin/shippers', getAuthHeaders()).then(res => { setShippers(res.data); setAssignShipperForm({ orderId: o.id, shipperId: '' }); openModal('assignShipper'); }); }}>Phân công</button></td></tr>))}</tbody>
+                                                <tbody>{orders.map(o => {
+                                                    const isRequestCancel = (o.status?.id || o.status) === 6;
+                                                    return (
+                                                        <tr key={o.id} className={isRequestCancel ? 'table-warning' : ''}>
+                                                            <td><strong>#{o.id}</strong></td><td>{o.users?.username}</td><td>{o.total?.toLocaleString()} đ</td><td><span className={`badge ${o.status?.id === 1 || o.status === 1 ? 'bg-warning text-dark' : o.status?.id === 4 ? 'bg-success' : o.status?.id === 5 ? 'bg-danger' : o.status?.id === 6 ? 'bg-danger custom-blink' : 'bg-info'}`}>{getStatusName(o.status?.id || o.status || 1)}</span></td><td>{o.shipper ? o.shipper.name : <span className="text-danger">Chưa có</span>}</td>
+                                                            <td>
+                                                                <button className="btn btn-sm btn-primary me-2" onClick={() => { setOrderDetail(o); openModal('order'); }}>Chi tiết</button>
+                                                                {isRequestCancel ? (
+                                                                    <div className="btn-group">
+                                                                        <button className="btn btn-sm btn-danger" onClick={() => handleQuickActionStatus(o.id, 5)}>Duyệt hủy</button>
+                                                                        <button className="btn btn-sm btn-success" onClick={() => handleQuickActionStatus(o.id, 2)}>Từ chối</button>
+                                                                    </div>
+                                                                ) : <button className="btn btn-sm btn-warning" onClick={() => { axios.get('http://localhost:8081/api/admin/shippers', getAuthHeaders()).then(res => { setShippers(res.data); setAssignShipperForm({ orderId: o.id, shipperId: '' }); openModal('assignShipper'); }); }}>Phân công</button>}
+                                                            </td>
+                                                        </tr>
+                                                    )})}</tbody>
                                             </table>
                                         </div>
                                     </div>
