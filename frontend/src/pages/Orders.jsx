@@ -34,14 +34,14 @@ export default function Orders() {
     };
 
     const handleCancelOrder = async (orderId, isRequest) => {
-        const message = isRequest ? 'Bạn muốn gửi yêu cầu hủy đơn hàng này cho Admin xem xét?' : 'Bạn có chắc chắn muốn hủy đơn hàng này?';
+        const message = 'Bạn muốn gửi yêu cầu hủy đơn hàng này cho Admin xem xét?';
         if (!window.confirm(message)) return;
         const token = localStorage.getItem('token');
         try {
             await axios.put(`http://localhost:8081/api/orders/${orderId}/cancel`, {}, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            alert(isRequest ? 'Đã gửi yêu cầu hủy!' : 'Đã hủy đơn hàng!');
+            alert('Đã gửi yêu cầu hủy đơn hàng!');
             fetchOrders(); // Tải lại danh sách tự động cập nhật State
         } catch (error) {
             alert(error.response?.data?.message || 'Lỗi khi thao tác với đơn hàng');
@@ -77,21 +77,19 @@ export default function Orders() {
                                 {orders.map(order => {
                                     const statusId = order.status?.id || order.status || 1;
                                     const statusObj = STATUSES.find(s => s.id === parseInt(statusId));
-                                    const canCancel = parseInt(statusId) === 1;
-                                    const canRequestCancel = parseInt(statusId) === 2 || parseInt(statusId) === 3;
+                                    const canRequestCancel = parseInt(statusId) === 1 || parseInt(statusId) === 2;
 
                                     return (
                                         <tr key={order.id}>
                                             <td><strong>#{order.id}</strong></td>
                                             <td>{new Date(order.createdAt).toLocaleDateString()}</td>
                                             <td className="text-primary fw-bold">{order.total?.toLocaleString()} đ</td>
-                                            <td><span className={`badge ${statusId === 1 ? 'bg-warning text-dark' : statusId === 4 ? 'bg-success' : statusId === 5 ? 'bg-danger' : statusId === 6 ? 'bg-secondary' : 'bg-info'}`}>{statusObj?.name}</span></td>
+                                            <td><span className={`badge ${statusId === 1 ? 'bg-warning text-dark' : statusId === 4 ? 'bg-success' : statusId === 5 ? 'bg-danger' : statusId === 6 ? 'bg-danger shadow-sm' : 'bg-info'}`}>{statusObj?.name}</span></td>
                                             <td className="text-end">
                                                 <div className="d-flex gap-2 justify-content-end">
                                                     <button onClick={() => handleViewOrder(order.id)} className="btn btn-sm btn-primary" style={{minWidth: '100px'}}>Xem</button>
-                                                    {canCancel && <button onClick={() => handleCancelOrder(order.id, false)} className="btn btn-sm btn-outline-danger" style={{minWidth: '100px'}}>Hủy</button>}
-                                                    {canRequestCancel && <button onClick={() => handleCancelOrder(order.id, true)} className="btn btn-sm btn-outline-warning" style={{minWidth: '100px'}}>Yêu cầu hủy</button>}
-                                                    {(!canCancel && !canRequestCancel) && <button disabled className="btn btn-sm btn-outline-secondary" style={{minWidth: '100px'}}>Hủy</button>}
+                                                    {canRequestCancel && <button onClick={() => handleCancelOrder(order.id, true)} className="btn btn-sm btn-outline-danger" style={{minWidth: '100px'}}>Hủy đơn</button>}
+                                                    {(!canRequestCancel && statusId !== 5 && statusId !== 4 && statusId !== 6) && <button disabled className="btn btn-sm btn-outline-secondary" style={{minWidth: '100px'}}>Hủy</button>}
                                                 </div>
                                             </td>
                                         </tr>
