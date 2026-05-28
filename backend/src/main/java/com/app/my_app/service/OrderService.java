@@ -311,17 +311,14 @@ public class OrderService {
 
         Long oldStatusId = order.getStatus() != null ? order.getStatus().getId() : null;
         
-        // Cho phép hủy trực tiếp nếu đang Chờ xác nhận (1).
-        // Gửi yêu cầu hủy nếu Đang chuẩn bị hàng (2) hoặc Đang giao hàng (3).
-        if (oldStatusId == null || oldStatusId.equals(4L) || oldStatusId.equals(5L) || oldStatusId.equals(6L)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không thể hủy đơn hàng ở trạng thái này!");
+        // Chỉ cho phép hủy khi đang ở trạng thái Chờ xác nhận (1) hoặc Đang chuẩn bị hàng (2).
+        // Trạng thái Đang giao hàng (3) không được phép yêu cầu hủy theo quy định mới.
+        if (oldStatusId == null || !(oldStatusId.equals(1L) || oldStatusId.equals(2L))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bạn chỉ có thể hủy đơn hàng khi đang ở trạng thái Chờ xác nhận hoặc Đang chuẩn bị!");
         }
 
-        if (oldStatusId.equals(1L)) {
-            updateStatus(id, 5L); // Hủy trực tiếp (Thành "Đã hủy")
-        } else {
-            updateStatus(id, 6L); // Gửi yêu cầu hủy
-        }
+        // Luôn chuyển sang trạng thái "Yêu cầu hủy" (6) để chờ Admin phê duyệt.
+        updateStatus(id, 6L);
     }
 
     public void delete(final Long id) {
