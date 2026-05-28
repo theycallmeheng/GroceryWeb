@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import ShippingCalculator from '../components/ShippingCalculator';
 
 export default function Checkout() {
     const [cartItems, setCartItems] = useState([]);
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
-    const [deliveryTime, setDeliveryTime] = useState('thuong');
-    const [shippingFee, setShippingFee] = useState(15000);
+    const [shippingFee, setShippingFee] = useState(0);
     const [paymentMethod, setPaymentMethod] = useState('Tiền mặt');
+    const [note, setNote] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,11 +39,15 @@ export default function Checkout() {
 
     const handleOrder = async () => {
         if (cartItems.length === 0) {
-            alert("Giỏ hàng trống!");
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Giỏ hàng trống!', type: 'warning' } }));
             return;
         }
         if (!phone || !address) {
-            alert("Vui lòng nhập đủ SĐT và địa chỉ!");
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng nhập đủ SĐT và địa chỉ!', type: 'warning' } }));
+            return;
+        }
+        if (shippingFee === 0) {
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng ấn nút \'Tính Phí Ship\' trên bản đồ trước khi đặt hàng!', type: 'warning' } }));
             return;
         }
 
@@ -52,14 +57,15 @@ export default function Checkout() {
                 phone,
                 address,
                 total: totalAmount,
-                deliveryTime,
-                paymentMethod
+                paymentMethod,
+                note
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             navigate('/success'); // Chuyển hướng tới trang thành công
         } catch (error) {
-            alert('Lỗi khi đặt hàng!');
+            const msg = error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng!';
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: msg, type: 'danger' } }));
         }
     };
 
@@ -91,44 +97,18 @@ export default function Checkout() {
                                 <label className="form-label fw-bold text-muted">Số điện thoại người nhận</label>
                                 <input type="text" className="form-control bg-light fs-5 py-2" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Nhập số điện thoại..." />
                             </div>
-                        </div>
-                    </div>
-
-                    <div className="card shadow-sm border-0 mb-4">
-                        <div className="card-body p-4">
-                            <div className="d-flex align-items-center mb-4">
-                                <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style={{width: '32px', height: '32px'}}>2</div>
-                                <h3 className="m-0 fs-5 fw-bold">Địa chỉ nhận hàng</h3>
-                            </div>
                             <div className="mb-3 ps-5">
-                                <label className="form-label fw-bold text-muted">Nơi nhận</label>
-                                <textarea className="form-control bg-light fs-5 py-2" rows="3" value={address} onChange={e => setAddress(e.target.value)} placeholder="Nhập địa chỉ chi tiết..."></textarea>
+                                <label className="form-label fw-bold text-muted">Ghi chú đơn hàng (Tùy chọn)</label>
+                                <textarea className="form-control bg-light fs-5 py-2" rows="2" value={note} onChange={e => setNote(e.target.value)} placeholder="Giao giờ hành chính, gọi điện trước khi giao..."></textarea>
                             </div>
                         </div>
                     </div>
 
-                    <div className="card shadow-sm border-0 mb-4">
-                        <div className="card-body p-4">
-                            <div className="d-flex align-items-center mb-4">
-                                <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style={{width: '32px', height: '32px'}}>3</div>
-                                <h3 className="m-0 fs-5 fw-bold">Thời gian giao hàng</h3>
-                            </div>
-                            <div className="row g-3 ps-5">
-                                <div className="col-sm-6">
-                                    <div className={`card p-3 h-100 border-2 ${deliveryTime === 'thuong' ? 'border-primary bg-primary bg-opacity-10 text-primary' : 'border-light'}`} style={{cursor:'pointer'}} onClick={() => { setDeliveryTime('thuong'); setShippingFee(15000); }}>
-                                        <div className="fw-bold mb-1"><i className="bi bi-truck me-1"></i>Giao hàng Thường</div>
-                                        <div className="small">Phí vận chuyển: 15.000 đ</div>
-                                    </div>
-                                </div>
-                                <div className="col-sm-6">
-                                    <div className={`card p-3 h-100 border-2 ${deliveryTime === 'nhanh' ? 'border-primary bg-primary bg-opacity-10 text-primary' : 'border-light'}`} style={{cursor:'pointer'}} onClick={() => { setDeliveryTime('nhanh'); setShippingFee(40000); }}>
-                                        <div className="fw-bold mb-1"><i className="bi bi-lightning-charge me-1"></i>Giao hàng Nhanh</div>
-                                        <div className="small">Phí vận chuyển: 40.000 đ</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ShippingCalculator 
+                        initialAddress={address}
+                        onFeeCalculated={(fee) => setShippingFee(fee)} 
+                        onAddressSelected={(addr) => setAddress(addr)} 
+                    />
                 </div>
 
                 <div className="col-lg-5">

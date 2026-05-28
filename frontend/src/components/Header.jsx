@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Chatbot from './Chatbot';
 
 export default function Header() {
     const [user, setUser] = useState(null);
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -22,6 +24,22 @@ export default function Header() {
             }
         };
         fetchUser();
+
+        const handleCartUpdate = () => {
+            fetchUser(); // Cập nhật lại số lượng giỏ hàng
+        };
+
+        const handleShowToast = (e) => {
+            setToast({ show: true, message: e.detail.message, type: e.detail.type || 'success' });
+            setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
+        };
+
+        window.addEventListener('cartUpdated', handleCartUpdate);
+        window.addEventListener('showToast', handleShowToast);
+        return () => {
+            window.removeEventListener('cartUpdated', handleCartUpdate);
+            window.removeEventListener('showToast', handleShowToast);
+        };
     }, []);
 
     const handleLogout = () => {
@@ -31,6 +49,7 @@ export default function Header() {
     };
 
     return (
+        <>
         <header className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top py-3">
             <div className="container-fluid px-4">
                 <Link className="navbar-brand fw-bold text-success fs-2 d-flex align-items-center" to="/">
@@ -63,5 +82,25 @@ export default function Header() {
                 </div>
             </div>
         </header>
+
+        {/* Thông báo Toast Popup góc trên phải */}
+        {toast.show && (
+            <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050, marginTop: '80px' }}>
+                <div className={`toast show align-items-center border-0 shadow-lg rounded-3 bg-${toast.type} ${toast.type === 'warning' ? 'text-dark' : 'text-white'}`} role="alert">
+                    <div className="d-flex p-2">
+                        <div className="toast-body fs-6 fw-bold d-flex align-items-center">
+                            {toast.type === 'success' && <i className="bi bi-check-circle-fill me-2 fs-4"></i>}
+                            {toast.type === 'danger' && <i className="bi bi-x-octagon-fill me-2 fs-4"></i>}
+                            {toast.type === 'warning' && <i className="bi bi-exclamation-triangle-fill me-2 fs-4"></i>}
+                            {toast.message}
+                        </div>
+                        <button type="button" className={`btn-close ${toast.type === 'warning' ? '' : 'btn-close-white'} me-2 m-auto`} onClick={() => setToast(prev => ({ ...prev, show: false }))}></button>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        <Chatbot />
+        </>
     );
 }

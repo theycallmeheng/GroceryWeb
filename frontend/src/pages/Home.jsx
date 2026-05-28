@@ -86,7 +86,7 @@ export default function Home() {
     const handleAddToCart = async (productId) => {
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('Bạn cần đăng nhập để mua hàng!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Bạn cần đăng nhập để mua hàng!', type: 'warning' } }));
             navigate('/dangnhap');
             return;
         }
@@ -94,10 +94,11 @@ export default function Home() {
             await axios.post('http://localhost:8081/api/cartItems', { productId, quantity: 1 }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Đã thêm sản phẩm vào giỏ hàng!');
-            window.location.reload(); // Tạm thời dùng reload để cập nhật số lượng trên Header
+            // Phát sự kiện để Header tự động cập nhật số lượng giỏ hàng mà không cần reload
+            window.dispatchEvent(new Event('cartUpdated'));
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã thêm sản phẩm vào giỏ hàng!', type: 'success' } }));
         } catch (error) {
-            alert('Lỗi thêm vào giỏ hàng');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Lỗi thêm vào giỏ hàng', type: 'danger' } }));
         }
     };
 

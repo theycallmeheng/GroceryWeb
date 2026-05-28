@@ -49,17 +49,18 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors(cors -> cors.configure(http))
+        http.cors(cors -> cors.disable()) // Để Spring MVC tự quản lý CORS thay vì Security
             .csrf(csrf -> csrf.disable())
             .exceptionHandling(exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll() // Cho phép trình duyệt gửi yêu cầu kiểm tra
                 .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                 .requestMatchers("/authenticate", "/register", "/dangnhap.html",
                         "/*.html",
                         "/components/**",
                         "/swagger-ui/**", "/v3/**", "/swagger-resources/**",
-                        "/", "/favicon.ico", "/js/**", "/css/**", "/img/**", "/demo/**", "/api/auth/**").permitAll()
+                "/", "/error", "/favicon.ico", "/js/**", "/css/**", "/img/**", "/demo/**", "/api/auth/**", "/api/chatbot/**", "/api/products/**").permitAll()
                 .anyRequest().authenticated()
             );
         

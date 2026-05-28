@@ -33,7 +33,7 @@ export default function ProductDetail() {
             }
         } catch (error) {
             console.error("Lỗi tải chi tiết sản phẩm:", error);
-            alert("Sản phẩm không tồn tại!");
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Sản phẩm không tồn tại!', type: 'danger' } }));
             navigate('/');
         }
         setLoading(false);
@@ -49,7 +49,7 @@ export default function ProductDetail() {
     const handleAddToCart = async (redirect = false) => {
         const token = localStorage.getItem('token');
         if (!token) {
-            alert('Bạn cần đăng nhập để mua hàng!');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Bạn cần đăng nhập để mua hàng!', type: 'warning' } }));
             navigate('/dangnhap');
             return;
         }
@@ -58,13 +58,14 @@ export default function ProductDetail() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (redirect) {
-                window.location.href = '/giohang'; // Cập nhật Header và nhảy sang giỏ hàng
+                navigate('/giohang'); // Chuyển trang mượt mà không load lại web
             } else {
-                alert('Đã thêm sản phẩm vào giỏ hàng!');
-                window.location.reload(); // Cập nhật Header
+                // Phát sự kiện để Header tự động cập nhật
+                window.dispatchEvent(new Event('cartUpdated'));
+                window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã thêm sản phẩm vào giỏ hàng!', type: 'success' } }));
             }
         } catch (error) {
-            alert('Lỗi thêm vào giỏ hàng');
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Lỗi thêm vào giỏ hàng!', type: 'danger' } }));
         }
     };
 

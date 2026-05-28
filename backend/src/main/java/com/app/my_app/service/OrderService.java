@@ -55,6 +55,9 @@ public class OrderService {
 
     @Autowired
     private ProductRepository productRepository;
+    
+    @Autowired
+    private ShippingService shippingService;
 
     public OrderService(final OrderRepository orderRepository,
                         final OrderStatusRepository orderStatusRepository,
@@ -66,7 +69,11 @@ public class OrderService {
 
     // Lấy tất cả danh sách order
     public List<Order> findAll() {
-        return orderRepository.findAllByUsersId(authService.getCurrentUserId());
+        User currentUser = authService.getCurrentUser();
+        if (currentUser != null && "ROLE_ADMIN".equals(currentUser.getRole())) {
+            return orderRepository.findAll(); // Admin được xem toàn bộ đơn của khách
+        }
+        return orderRepository.findAllByUsersId(currentUser.getId()); // Khách chỉ xem đơn của mình
     }
 
     public Order get(final Long id) {
@@ -102,6 +109,12 @@ public class OrderService {
             order.setAddress(orderData.getAddress());
         } else {
             order.setAddress(authService.getCurrentUser().getAddress());
+        }
+
+        // Xác minh lại địa chỉ một lần nữa khi lưu DB để tránh người dùng lách luật
+        String lowerAddress = order.getAddress() != null ? order.getAddress().toLowerCase() : "";
+        if (!lowerAddress.contains("hà nội") && !lowerAddress.contains("hanoi") && !lowerAddress.contains("ha noi")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Rất xin lỗi, shop chỉ hỗ trợ giao hàng trong khu vực Hà Nội.");
         }
         
         if (orderData != null && orderData.getPhone() != null && !orderData.getPhone().isEmpty()) {
@@ -161,7 +174,9 @@ public class OrderService {
         if (orderData != null && orderData.getTotal() != null) {
             updateOrder.setTotal(orderData.getTotal().longValue());
         } else {
-            updateOrder.setTotal(totalPrice);
+            // Chỉ tự tính lại tiền ship nếu Frontend vì lý do nào đó không gửi tổng tiền lên
+            long shippingFee = shippingService.calculateShippingFee(order.getAddress());
+            updateOrder.setTotal(totalPrice + shippingFee);
         }
         
         Set<OrderItem> os = new HashSet<>(orderItems);

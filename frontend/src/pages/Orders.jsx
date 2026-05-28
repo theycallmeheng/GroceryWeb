@@ -44,7 +44,7 @@ export default function Orders() {
             alert(isRequest ? 'Đã gửi yêu cầu hủy!' : 'Đã hủy đơn hàng!');
             fetchOrders(); // Tải lại danh sách tự động cập nhật State
         } catch (error) {
-            alert('Lỗi khi thao tác với đơn hàng');
+            alert(error.response?.data?.message || 'Lỗi khi thao tác với đơn hàng');
         }
     };
 
@@ -140,6 +140,14 @@ export default function Orders() {
                                         <p className="mb-1 text-muted">Trạng thái TT:</p>
                                         <p className="fw-bold text-success">{selectedOrder.paymentStatus || 'Chờ xác nhận'}</p>
                                     </div>
+                                    {selectedOrder.note && (
+                                        <div className="col-md-12">
+                                            <p className="mb-1 text-muted">Ghi chú của bạn:</p>
+                                            <div className="p-2 bg-light border rounded">
+                                                <p className="mb-0 text-dark fst-italic">{selectedOrder.note}</p>
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="col-md-12">
                                         <p className="mb-1 text-muted">Shipper:</p>
                                         <p className="fw-bold">{selectedOrder.shipper ? `${selectedOrder.shipper.name} (${selectedOrder.shipper.phone})` : 'Chưa phân công'}</p>
