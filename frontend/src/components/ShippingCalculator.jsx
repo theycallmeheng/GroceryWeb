@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import axios from 'axios';
@@ -18,6 +18,17 @@ L.Marker.prototype.options.icon = DefaultIcon;
 
 // Tọa độ cửa hàng của bạn tại 120 Yên Lãng
 const STORE_POSITION = [21.012563, 105.817457];
+
+// Component hỗ trợ di chuyển tâm bản đồ khi lấy vị trí hiện tại
+function RecenterMap({ position }) {
+    const map = useMap();
+    useEffect(() => {
+        if (position) {
+            map.setView(position, 16); // Phóng to vào vị trí được chọn
+        }
+    }, [position, map]);
+    return null;
+}
 
 function LocationMarker({ position, setPosition, setAddress }) {
     const map = useMapEvents({
@@ -55,6 +66,40 @@ export default function ShippingCalculator({ onFeeCalculated, onAddressSelected,
             setAddress(initialAddress);
         }
     }, [initialAddress]);
+
+    const handleGetCurrentLocation = () => {
+        if (!navigator.geolocation) {
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Trình duyệt của bạn không hỗ trợ định vị!', type: 'danger' } }));
+            return;
+        }
+
+        setLoading(true);
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const newPos = [latitude, longitude];
+                setPosition(newPos);
+                
+                // Gọi API để chuyển tọa độ thành tên địa chỉ
+                axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                    .then(res => {
+                        if (res.data && res.data.display_name) {
+                            setAddress(res.data.display_name);
+                        }
+                        setLoading(false);
+                    })
+                    .catch(err => {
+                        console.error("Lỗi lấy địa chỉ:", err);
+                        setLoading(false);
+                    });
+            },
+            (err) => {
+                console.error(err);
+                window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Không thể lấy vị trí. Vui lòng bật quyền truy cập vị trí trên trình duyệt!', type: 'warning' } }));
+                setLoading(false);
+            }
+        );
+    };
 
     const handleCalculate = async () => {
         if (!address) {
@@ -128,7 +173,18 @@ export default function ShippingCalculator({ onFeeCalculated, onAddressSelected,
                         <Popup><b>Cửa hàng của bạn</b><br/>120 Yên Lãng, Đống Đa</Popup>
                     </Marker>
                     <LocationMarker position={position} setPosition={setPosition} setAddress={setAddress} />
+                    <RecenterMap position={position} />
                 </MapContainer>
+            </div>
+
+            <div className="mb-3">
+                <button 
+                    className="btn btn-outline-primary btn-sm fw-bold" 
+                    onClick={handleGetCurrentLocation} 
+                    disabled={loading}
+                >
+                    <i className="bi bi-geo-alt-fill me-1"></i> Sử dụng vị trí hiện tại của tôi
+                </button>
             </div>
 
             <div className="input-group mb-3">
