@@ -3,11 +3,14 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import ShippingCalculator from '../components/ShippingCalculator';
 
+const FREE_SHIPPING_THRESHOLD = 500000;
+
 export default function Checkout() {
     const [cartItems, setCartItems] = useState([]);
     const [phone, setPhone] = useState('');
     const [address, setAddress] = useState('');
     const [shippingFee, setShippingFee] = useState(0);
+    const [shippingCalculated, setShippingCalculated] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('Tiền mặt');
     const [note, setNote] = useState('');
     const navigate = useNavigate();
@@ -35,7 +38,18 @@ export default function Checkout() {
     }, [navigate]);
 
     const subtotal = cartItems.reduce((sum, item) => sum + (item.product?.price || 0) * item.quantity, 0);
-    const totalAmount = subtotal + shippingFee;
+    const isFreeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
+    const freeShippingRemaining = Math.max(FREE_SHIPPING_THRESHOLD - subtotal, 0);
+    const freeShippingProgress = Math.min((subtotal / FREE_SHIPPING_THRESHOLD) * 100, 100);
+    const effectiveShippingFee = isFreeShipping ? 0 : shippingFee;
+    const totalAmount = subtotal + effectiveShippingFee;
+
+    useEffect(() => {
+        if (isFreeShipping) {
+            setShippingFee(0);
+            setShippingCalculated(true);
+        }
+    }, [isFreeShipping]);
 
     const handleOrder = async () => {
         if (cartItems.length === 0) {
@@ -46,7 +60,7 @@ export default function Checkout() {
             window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng nhập đủ SĐT và địa chỉ!', type: 'warning' } }));
             return;
         }
-        if (shippingFee === 0) {
+        if (!isFreeShipping && (!shippingCalculated || shippingFee === 0)) {
             window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Vui lòng ấn nút \'Tính Phí Ship\' trên bản đồ trước khi đặt hàng!', type: 'warning' } }));
             return;
         }
@@ -106,7 +120,11 @@ export default function Checkout() {
 
                     <ShippingCalculator 
                         initialAddress={address}
-                        onFeeCalculated={(fee) => setShippingFee(fee)} 
+                        freeShippingEligible={isFreeShipping}
+                        onFeeCalculated={(fee) => {
+                            setShippingFee(fee);
+                            setShippingCalculated(true);
+                        }} 
                         onAddressSelected={(addr) => setAddress(addr)} 
                     />
                 </div>
@@ -125,7 +143,22 @@ export default function Checkout() {
                             </div>
                             
                             <div className="d-flex justify-content-between mb-2"><span className="text-muted">Tổng tiền hàng</span><span className="fw-bold">{subtotal.toLocaleString()} đ</span></div>
-                            <div className="d-flex justify-content-between mb-3 pb-3 border-bottom"><span className="text-muted">Phí vận chuyển</span><span className="fw-bold">{shippingFee.toLocaleString()} đ</span></div>
+                            <div className="d-flex justify-content-between mb-2"><span className="text-muted">Phí vận chuyển</span><span className="fw-bold">{effectiveShippingFee.toLocaleString()} đ</span></div>
+                            <div className={`rounded-3 p-3 mb-3 border ${isFreeShipping ? 'bg-success bg-opacity-10 border-success text-success' : 'bg-warning bg-opacity-10 border-warning text-dark'}`}>
+                                <div className="fw-bold">
+                                    <i className={`bi ${isFreeShipping ? 'bi-truck' : 'bi-info-circle'} me-2`}></i>
+                                    {isFreeShipping
+                                        ? 'Bạn đã được miễn phí giao hàng'
+                                        : `Mua thêm ${freeShippingRemaining.toLocaleString()} đ nữa để được miễn phí giao hàng`}
+                                </div>
+                                <div className="progress mt-2" style={{ height: '8px' }}>
+                                    <div
+                                        className={`progress-bar ${isFreeShipping ? 'bg-success' : 'bg-warning'}`}
+                                        style={{ width: `${freeShippingProgress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                            <div className="border-bottom mb-3"></div>
                             <div className="d-flex justify-content-between mb-4"><span className="fs-5 fw-bold">Tổng thanh toán</span><span className="fs-4 fw-bold text-danger">{totalAmount.toLocaleString()} đ</span></div>
 
                             <h5 className="fw-bold mb-3 mt-4">Phương thức thanh toán</h5>

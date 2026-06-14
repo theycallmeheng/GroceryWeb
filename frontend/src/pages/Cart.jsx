@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 
 const API_BASE = 'http://localhost:8081/api';
 const COMBO_STORAGE_PREFIX = 'grocery_cart_combos';
+const FREE_SHIPPING_THRESHOLD = 500000;
 
 const createDefaultCombos = () => [{ id: crypto.randomUUID(), name: 'Combo 1', items: [] }];
 
@@ -54,6 +55,9 @@ export default function Cart() {
             return sum + (product?.price || item.price || 0) * item.quantity;
         }, 0);
     }, [products, selectedCombo]);
+    const freeShippingRemaining = Math.max(FREE_SHIPPING_THRESHOLD - total, 0);
+    const freeShippingProgress = Math.min((total / FREE_SHIPPING_THRESHOLD) * 100, 100);
+    const hasFreeShipping = total >= FREE_SHIPPING_THRESHOLD;
 
     function authHeaders() {
         const token = localStorage.getItem('token');
@@ -546,6 +550,33 @@ export default function Cart() {
                                 <span className="text-light">Tổng tiền hàng:</span>
                                 <span className="fw-bold fs-4 text-warning">{total.toLocaleString()} đ</span>
                             </div>
+                            {cartItems.length > 0 && (
+                                <div className={`rounded-3 p-3 mb-4 ${hasFreeShipping ? 'bg-success bg-opacity-25 border border-success' : 'bg-white bg-opacity-10 border border-secondary'}`}>
+                                    <div className="d-flex align-items-start gap-2 mb-2">
+                                        <i className={`bi ${hasFreeShipping ? 'bi-truck text-success' : 'bi-truck text-warning'} fs-5`}></i>
+                                        <div className="flex-grow-1">
+                                            <div className="fw-bold">
+                                                {hasFreeShipping
+                                                    ? 'Đơn hàng đã được miễn phí giao hàng'
+                                                    : `Mua thêm ${freeShippingRemaining.toLocaleString()} đ nữa để được miễn phí giao hàng`}
+                                            </div>
+                                            <div className="small text-light opacity-75">
+                                                Freeship cho đơn hàng từ {FREE_SHIPPING_THRESHOLD.toLocaleString()} đ
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="progress" style={{ height: '10px' }}>
+                                        <div
+                                            className={`progress-bar ${hasFreeShipping ? 'bg-success' : 'bg-warning'}`}
+                                            role="progressbar"
+                                            style={{ width: `${freeShippingProgress}%` }}
+                                            aria-valuenow={freeShippingProgress}
+                                            aria-valuemin="0"
+                                            aria-valuemax="100"
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
                             <hr className="border-secondary mb-4" />
                             <Link to="/thanhtoan" className={`btn btn-primary w-100 py-3 fw-bold fs-5 shadow ${cartItems.length === 0 ? 'disabled' : ''}`}>
                                 Tiến hành đặt hàng <i className="bi bi-arrow-right ms-2"></i>

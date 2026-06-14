@@ -54,7 +54,7 @@ function LocationMarker({ position, setPosition, setAddress }) {
     );
 }
 
-export default function ShippingCalculator({ onFeeCalculated, onAddressSelected, initialAddress }) {
+export default function ShippingCalculator({ onFeeCalculated, onAddressSelected, initialAddress, freeShippingEligible = false }) {
     const [position, setPosition] = useState(null);
     const [address, setAddress] = useState('');
     const [fee, setFee] = useState(0);
@@ -110,6 +110,15 @@ export default function ShippingCalculator({ onFeeCalculated, onAddressSelected,
         try {
             // Truyền địa chỉ lên Component Giỏ Hàng cha
             if (onAddressSelected) onAddressSelected(address);
+
+            if (freeShippingEligible) {
+                setFee(0);
+                setShippingDetails(null);
+                if (onFeeCalculated) onFeeCalculated(0);
+                window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đơn hàng từ 500.000đ được miễn phí giao hàng!', type: 'success' } }));
+                setLoading(false);
+                return;
+            }
 
             // Lấy token để gọi API (tránh lỗi 403 Forbidden từ Spring Security)
             const token = localStorage.getItem('token');
@@ -190,9 +199,19 @@ export default function ShippingCalculator({ onFeeCalculated, onAddressSelected,
             <div className="input-group mb-3">
                 <input type="text" className="form-control form-control-lg" placeholder="VD: 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội" value={address} onChange={(e) => setAddress(e.target.value)} />
                 <button className="btn btn-primary px-4 fw-bold" onClick={handleCalculate} disabled={loading}>
-                    {loading ? <><span className="spinner-border spinner-border-sm me-2"></span>Đang tính...</> : 'Tính Phí Ship'}
+                    {loading ? <><span className="spinner-border spinner-border-sm me-2"></span>Đang tính...</> : (freeShippingEligible ? 'Xác nhận Freeship' : 'Tính Phí Ship')}
                 </button>
             </div>
+
+            {freeShippingEligible && (
+                <div className="alert alert-success mb-3">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <span><strong>Ưu đãi giao hàng:</strong></span>
+                        <span className="fs-5 fw-bold text-success">Miễn phí</span>
+                    </div>
+                    <div className="small text-muted mt-1">Đơn hàng từ 500.000đ được miễn phí giao hàng.</div>
+                </div>
+            )}
 
             {fee > 0 && (
                 <div className="alert alert-success mb-0">
