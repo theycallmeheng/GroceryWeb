@@ -17,8 +17,18 @@ Phần 2: Thiết lập Cơ sở dữ liệu (Database)
   
   **Sau khi khởi chạy Backend(StringBoot) để hoàn tất quá trình tạo bảng thì ta execute lần lượt các file[ seed/taodanhmuc.sql và seed/product.sql ] vào MySQL Workbench để insert dữ liệu cơ bản vào bảng.**
 
+Phần 3: Cài đặt API Chatbot
+    - Truy cập Gemini API key: https://aistudio.google.com/app/api-keys
+    - Copy API sau đó truy cập backend/src|main/java/rest/ChatbotServices.java
+    - Tìm và dán API của bạn vào đoạn code sau:
+    ChatbotServices.java
+    ______
+        // DÁN API KEY BẠN VỪA LẤY Ở GOOGLE STUDIO VÀO ĐÂY:
+            private static final String GEMINI_API_KEY = "api_key";
+    ______
 
-Phần 3: Khởi chạy Backend (Spring Boot)
+
+Phần 4: Khởi chạy Backend (Spring Boot)
     - Mở IDE (IntelliJ IDEA) và chọn Open, sau đó trỏ tới thư mục backend của dự án đã clone về.
     - Chờ một chút để Maven tự động tải về các thư viện (hiển thị quá trình ở góc dưới màn hình).
     - Tìm và mở file cấu hình src/main/resources/application.yml (hoặc application.properties). Bạn cần cập nhật lại thông tin kết nối MySQL cho khớp với máy của bạn:

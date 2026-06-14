@@ -22,7 +22,7 @@ public class ChatbotService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // DÁN API KEY BẠN VỪA LẤY Ở GOOGLE STUDIO VÀO ĐÂY:
-    private static final String GEMINI_API_KEY = "Dien API Key của bạn vào đây";
+    private static final String GEMINI_API_KEY = "api_key";
 
     public Map<String, Object> processMessage(String message) {
         Map<String, Object> response = new HashMap<>();
@@ -40,7 +40,7 @@ public class ChatbotService {
                 + "Đây là danh sách sản phẩm shop đang có (ID - Tên sản phẩm):\n"
                 + productListWithIds + "\n"
                 + "Hãy tư vấn ngắn gọn và chọn ra các ID sản phẩm phù hợp nhất với yêu cầu để gợi ý cho khách.\n"
-                + "BẮT BUỘC CHỈ trả về ĐÚNG 1 đối tượng JSON theo định dạng sau (không kèm văn bản giải thích nào khác):\n"
+                + "BẮT BUỘC trả về kết quả ĐÚNG định dạng JSON sau (không chứa thẻ markdown, không chứa chữ ```json):\n"
                 + "{\n"
                 + "  \"reply\": \"Lời tư vấn của bạn\",\n"
                 + "  \"productIds\": [danh sách các ID số nguyên]\n"
@@ -70,13 +70,6 @@ public class ChatbotService {
                 // Cắt bỏ thẻ markdown json nếu AI cố tình trả về
                 aiText = aiText.replace("```json", "").replace("```", "").trim();
                 
-                // Trích xuất phần JSON bên trong nếu AI có lỡ trả về các câu chữ dư thừa ở đầu/cuối
-                int startIndex = aiText.indexOf("{");
-                int endIndex = aiText.lastIndexOf("}");
-                if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
-                    aiText = aiText.substring(startIndex, endIndex + 1);
-                }
-
                 JsonNode aiJson = objectMapper.readTree(aiText);
                 String replyText = aiJson.has("reply") ? aiJson.get("reply").asText() : "Mình gợi ý cho bạn một số món này nhé:";
                 
@@ -95,12 +88,8 @@ public class ChatbotService {
         } catch (Exception e) {
             e.printStackTrace();
             String errorDetail = e.getMessage();
-            if (errorDetail != null) {
-                if (errorDetail.contains("400")) {
-                    errorDetail = "API Key không hợp lệ (400 Bad Request). Bạn hãy kiểm tra lại Key nhé!";
-                } else if (errorDetail.contains("503")) {
-                    errorDetail = "Máy chủ AI của Google hiện đang quá tải. Bạn vui lòng chờ một chút rồi thử lại nhé!";
-                }
+            if (errorDetail != null && errorDetail.contains("400")) {
+                errorDetail = "API Key không hợp lệ (400 Bad Request). Bạn hãy kiểm tra lại Key nhé!";
             }
             response.put("reply", "Lỗi kết nối AI: " + errorDetail);
             response.put("products", new ArrayList<>());
