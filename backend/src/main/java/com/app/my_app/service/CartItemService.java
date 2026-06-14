@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.transaction.Transactional;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -80,6 +82,54 @@ public class CartItemService {
             cartItem.setUser(authService.getCurrentUser());
         }
         return cartItemRepository.save(cartItem);
+    }
+
+    public List<CartItem> createTodaySuggestion() {
+        List<Long> productIds = productRepository.findAll().stream()
+                .filter(product -> product.getQuantity() != null && product.getQuantity() > 0)
+                .filter(product -> !isNonFoodCategory(product))
+                .map(product -> product.getId())
+                .toList();
+
+        if (productIds.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không còn món ăn phù hợp để gợi ý");
+        }
+
+        List<Long> shuffledProductIds = new ArrayList<>(productIds);
+        Collections.shuffle(shuffledProductIds);
+
+        int itemCount = Math.min(3, shuffledProductIds.size());
+        List<CartItem> addedItems = new ArrayList<>();
+        for (Long productId : shuffledProductIds.subList(0, itemCount)) {
+            CartItemDTO cartItemDTO = new CartItemDTO();
+            cartItemDTO.setProductId(productId);
+            cartItemDTO.setQuantity(1);
+            addedItems.add(create(cartItemDTO));
+        }
+
+        return addedItems;
+    }
+
+    private boolean isNonFoodCategory(com.app.my_app.domain.Product product) {
+        if (product.getCategory() == null) {
+            return false;
+        }
+
+        Long categoryId = product.getCategory().getId();
+        if (categoryId != null && categoryId == 7L) {
+            return true;
+        }
+
+        String categoryName = product.getCategory().getName();
+        if (categoryName == null) {
+            return false;
+        }
+
+        String normalizedName = categoryName.toLowerCase();
+        return normalizedName.contains("hóa")
+                || normalizedName.contains("mỹ phẩm")
+                || normalizedName.contains("mĩ phẩm")
+                || normalizedName.contains("đồ dùng");
     }
 
 

@@ -22,7 +22,7 @@ public class ChatbotService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // DÁN API KEY BẠN VỪA LẤY Ở GOOGLE STUDIO VÀO ĐÂY:
-    private static final String GEMINI_API_KEY = "AIzaSyCvI2ZZt5MUdssIlJbMVjJWcDnVUkrWdLE";
+    private static final String GEMINI_API_KEY = "AIzaSyAs2hI0fR48OBCpMbVqCLE1yyCIVhT7OGc";
 
     public Map<String, Object> processMessage(String message) {
         Map<String, Object> response = new HashMap<>();
@@ -88,8 +88,12 @@ public class ChatbotService {
         } catch (Exception e) {
             e.printStackTrace();
             String errorDetail = e.getMessage();
-            if (errorDetail != null && errorDetail.contains("400")) {
-                errorDetail = "API Key không hợp lệ (400 Bad Request). Bạn hãy kiểm tra lại Key nhé!";
+            if (errorDetail != null) {
+                if (errorDetail.contains("400")) {
+                    errorDetail = "API Key không hợp lệ (400 Bad Request). Bạn hãy kiểm tra lại Key nhé!";
+                } else if (errorDetail.contains("503")) {
+                    errorDetail = "Máy chủ AI của Google hiện đang quá tải. Bạn vui lòng chờ một chút rồi thử lại nhé!";
+                }
             }
             response.put("reply", "Lỗi kết nối AI: " + errorDetail);
             response.put("products", new ArrayList<>());

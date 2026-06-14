@@ -9,6 +9,8 @@ export default function Home() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeCategory, setActiveCategory] = useState('All');
     const [currentPage, setCurrentPage] = useState(1);
+    const [suggestionLoading, setSuggestionLoading] = useState(false);
+    const [todaySuggestedItems, setTodaySuggestedItems] = useState([]);
     const ITEMS_PER_PAGE = 12; // Số sản phẩm trên mỗi trang
 
     // Quản lý Badge Quảng cáo (Ads)
@@ -102,6 +104,30 @@ export default function Home() {
         }
     };
 
+    const handleTodaySuggestion = async () => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Bạn cần đăng nhập để dùng gợi ý hôm nay!', type: 'warning' } }));
+            navigate('/dangnhap');
+            return;
+        }
+
+        setSuggestionLoading(true);
+        try {
+            const res = await axios.post('http://localhost:8081/api/cartItems/today-suggestion', {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setTodaySuggestedItems(res.data || []);
+            window.dispatchEvent(new Event('cartUpdated'));
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message: 'Đã thêm gợi ý hôm nay vào giỏ hàng!', type: 'success' } }));
+        } catch (error) {
+            const message = error.response?.data?.message || 'Không thể tạo gợi ý hôm nay';
+            window.dispatchEvent(new CustomEvent('showToast', { detail: { message, type: 'danger' } }));
+        } finally {
+            setSuggestionLoading(false);
+        }
+    };
+
     // Lọc sản phẩm theo Từ khóa tìm kiếm và Danh mục
     const filteredProducts = products.filter(product => {
         const matchSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -135,6 +161,43 @@ export default function Home() {
                     </div>
 
                     {/* Badge Quảng cáo nổi bật ở phần đầu */}
+                    <div className="mx-auto mt-4" style={{ maxWidth: '720px' }}>
+                        <button
+                            type="button"
+                            onClick={handleTodaySuggestion}
+                            disabled={suggestionLoading || loading}
+                            className="btn btn-success btn-lg rounded-pill fw-bold px-4 py-3 shadow"
+                        >
+                            {suggestionLoading ? (
+                                <>
+                                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Đang chọn món...
+                                </>
+                            ) : (
+                                <>
+                                    <i className="bi bi-magic me-2"></i>
+                                    Hôm nay ăn gì?
+                                </>
+                            )}
+                        </button>
+
+                        {todaySuggestedItems.length > 0 && (
+                            <div className="bg-white rounded-4 shadow-sm mt-3 p-3 text-start">
+                                <div className="fw-bold text-success mb-2">
+                                    <i className="bi bi-bag-check-fill me-2"></i>
+                                    Đã thêm vào giỏ:
+                                </div>
+                                <div className="d-flex flex-wrap gap-2">
+                                    {todaySuggestedItems.map(item => (
+                                        <span key={item.id} className="badge text-bg-light border text-dark px-3 py-2">
+                                            {item.product?.name || 'Sản phẩm'} x{item.quantity}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {showAds && adsProducts.length > 0 && (
                         <div className="mx-auto mt-5 text-start" style={{ maxWidth: '850px' }}>
                             <div className="card shadow-lg border-0 rounded-4 overflow-hidden position-relative bg-white">

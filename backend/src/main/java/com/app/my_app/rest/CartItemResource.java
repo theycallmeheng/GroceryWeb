@@ -40,6 +40,12 @@ public class CartItemResource {
         return new ResponseEntity<>(cartItemService.create(cartItemDTO), HttpStatus.CREATED);
     }
 
+    @PostMapping("/today-suggestion")
+    @ApiResponse(responseCode = "201")
+    public ResponseEntity<List<CartItem>> createTodaySuggestion() {
+        return new ResponseEntity<>(cartItemService.createTodaySuggestion(), HttpStatus.CREATED);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<CartItem> updateCartItem(@PathVariable final Long id,
             @RequestBody @Valid final CartItemDTO cartItemDTO) {
