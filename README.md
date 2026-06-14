@@ -18,9 +18,12 @@ Phần 2: Thiết lập Cơ sở dữ liệu (Database)
   **Sau khi khởi chạy Backend(StringBoot) để hoàn tất quá trình tạo bảng thì ta execute lần lượt các file[ seed/taodanhmuc.sql và seed/product.sql ] vào MySQL Workbench để insert dữ liệu cơ bản vào bảng.**
 
 Phần 3: Cài đặt API Chatbot
-    - Truy cập Gemini API key: https://aistudio.google.com/app/api-keys
-    - Copy API sau đó truy cập backend/src|main/java/rest/ChatbotServices.java
-    - Tìm và dán API của bạn vào đoạn code sau:
+  - Truy cập Gemini API key: https://aistudio.google.com/app/api-keys
+    
+  - Copy API sau đó truy cập backend/src|main/java/rest/ChatbotServices.java
+    
+- Tìm và dán API của bạn vào đoạn code sau:
+    
     ChatbotServices.java
     ______
         // DÁN API KEY BẠN VỪA LẤY Ở GOOGLE STUDIO VÀO ĐÂY:
